@@ -26,6 +26,7 @@
   "homepage": "https://github.com/DanielAmah/eDocCabinet#readme",
   "dependencies": {
     "babel-eslint": "^7.2.3",
+    "coveralls": "^2.13.1",
     "eslint": "^4.2.0",
     "eslint-config-airbnb": "^15.0.2",
     "eslint-plugin-import": "^2.7.0"
