@@ -1,0 +1,33 @@
+{
+  "name": "edoccabinet",
+  "version": "1.0.0",
+  "description": "A Document Management System",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanielAmah/eDocCabinet.git"
+  },
+  "keywords": [
+    "Document",
+    "Management",
+    "System",
+    "API",
+    "Express",
+    "Sequelize"
+  ],
+  "author": "Daniel Amah",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DanielAmah/eDocCabinet/issues"
+  },
+  "homepage": "https://github.com/DanielAmah/eDocCabinet#readme",
+  "dependencies": {
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.2.0",
+    "eslint-config-airbnb": "^15.0.2",
+    "eslint-plugin-import": "^2.7.0"
+  }
+}
