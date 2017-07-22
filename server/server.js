@@ -17,7 +17,7 @@ const port = parseInt(process.env.PORT, 10) || 8000;
 app.set('port', port);
 
 // Setup a default catch-all route that sends back a welcome message in HTML format.
-app.get('*', (req, res) => res.status(200).send('<center><h2>Welcome to eDocCabinet - A Document Management API</h2>' + 
+app.get('*', (req, res) => res.status(200).send('<center><h2>Welcome to eDocCabinet - A Document Management API</h2>' +
 '<h4>Visit Postman to see all routes</h4></center>'));
 
 const server = http.createServer(app);

@@ -2,10 +2,12 @@
   "name": "edoccabinet",
   "version": "1.0.0",
   "description": "A Document Management System",
-  "main": "app.js",
+  "main": "server/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start:dev": "nodemon app.js --exec babel-node --presets es2015,stage-2"
+    "start": "npm run build && gulp",
+    "build": "gulp dev",
+    "dev": "npm run build && gulp",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -36,6 +38,9 @@
     "eslint-config-airbnb": "^15.0.2",
     "eslint-plugin-import": "^2.7.0",
     "express": "^4.15.3",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-nodemon": "^2.2.1",
     "morgan": "^1.8.2",
     "nodemon": "^1.11.0",
     "pg": "^7.0.1",
