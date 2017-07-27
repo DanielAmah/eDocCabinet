@@ -2,6 +2,7 @@ import express from 'express';
 import logger from 'morgan';
 import bodyParser from 'body-parser';
 import http from 'http';
+import Routes from './routes';
 
 
 // Set up the express app
@@ -18,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const port = parseInt(process.env.PORT, 10) || 8080;
 app.set('port', port);
 
-require('./routes')(app);
+Routes(app);
 
 const server = http.createServer(app);
 server.listen(port);

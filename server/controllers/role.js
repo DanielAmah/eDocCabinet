@@ -1,6 +1,6 @@
 const Roles = require('../models').Roles;
 
-module.exports = {
+const roleController = {
   newRole(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
@@ -108,3 +108,4 @@ module.exports = {
       });
   }
 };
+export default roleController;

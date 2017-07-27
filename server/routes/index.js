@@ -1,10 +1,10 @@
 import authentication from '../middleware/authentication';
+import documentController from '../controllers/document';
+import roleController from '../controllers/role';
+import userController from '../controllers/user';
 
-const userController = require('../controllers/user');
-const documentController = require('../controllers/document');
-const roleController = require('../controllers/role');
 
-module.exports = (app) => {
+const Routes = (app) => {
   app.get('/', (req, res) => res.status(200).send({
     message: 'Welcome to E-DocCabinet - A document management API',
   }));
@@ -44,3 +44,4 @@ module.exports = (app) => {
     message: 'The page you are looking for does not exist'
   }));
 };
+export default Routes;

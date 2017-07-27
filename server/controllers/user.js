@@ -8,7 +8,7 @@ const User = require('../models/').Users;
 const Documents = require('../models').Documents;
 const Roles = require('../models').Roles;
 
-module.exports = {
+const userController = {
   signup(req, res) {
     const password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
     return User
@@ -375,3 +375,5 @@ module.exports = {
       });
   },
 };
+
+export default userController;

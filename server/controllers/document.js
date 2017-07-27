@@ -1,7 +1,7 @@
 const Documents = require('../models').Documents;
 const Roles = require('../models').Roles;
 
-module.exports = {
+const documentController = {
   newDocument(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
@@ -205,7 +205,7 @@ module.exports = {
     }
     Roles.findById(req.decoded.userRole)
       .then(() => {
-        if (req.decoded.userRole === 'administrator') {
+        if (req.decoded.userRole === 1) {
           return Documents
             .find({
               where: {
@@ -249,3 +249,4 @@ module.exports = {
       });
   }
 };
+export default documentController;
