@@ -15,11 +15,19 @@ module.exports = {
       },
       access: {
         type: Sequelize.ENUM('public', 'private', 'role'),
-        defaultValue: 'public'
+        defaultValue: 'public',
       },
-      role: {
+      owner: {
         type: Sequelize.STRING,
         allowNull: false
+      },
+      userId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Users',
+          key: 'id',
+          as: 'userId',
+        },
       },
       createdAt: {
         allowNull: false,
@@ -28,15 +36,6 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
-      },
-      userId: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Users',
-          key: 'id',
-          as: 'userId',
-          unique: false,
-        },
       },
     }),
   down: queryInterface =>

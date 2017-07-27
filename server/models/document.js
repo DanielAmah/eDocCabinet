@@ -13,7 +13,7 @@ export default (sequelize, DataTypes) => {
       defaultValue: 'public',
       type: DataTypes.ENUM('public', 'private', 'role')
     },
-    role: {
+    owner: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -23,7 +23,6 @@ export default (sequelize, DataTypes) => {
     },
   });
   Documents.associate = (models) => {
-    // associations can be defined here
     Documents.belongsTo(models.Users, {
       foreignKey: 'userId',
       onDelete: 'CASCADE',
