@@ -18,7 +18,12 @@ module.exports = {
       updatedAt: new Date()
     },
     {
-      title: 'regular',
+      title: 'editor',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      title: 'subscriber',
       createdAt: new Date(),
       updatedAt: new Date()
     },
