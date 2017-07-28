@@ -67,7 +67,7 @@ const documentController = {
     const offset = req.query && req.query.offset ? req.query.offset : 0;
     Roles.findById(req.decoded.userRole)
       .then(() => {
-        if (req.decoded.userRole === 1) {
+        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
           return Documents
             .findAll({
               attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
@@ -91,7 +91,7 @@ const documentController = {
   showDocuments(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
-        if (req.decoded.userRole === 1) {
+        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
           return Documents
             .findAll({
               attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt']
@@ -116,7 +116,7 @@ const documentController = {
     }
     Roles.findById(req.decoded.userRole)
       .then(() => {
-        if (req.decoded.userRole === 1) {
+        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
           return Documents
             .find({
               where: { id: req.params.documentId },
@@ -159,7 +159,7 @@ const documentController = {
     }
     Roles.findById(req.decoded.userRole)
       .then(() => {
-        if (req.decoded.userRole === 1) {
+        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
           return Documents
             .findAll({
               where: {
@@ -205,7 +205,7 @@ const documentController = {
     }
     Roles.findById(req.decoded.userRole)
       .then(() => {
-        if (req.decoded.userRole === 1) {
+        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
           return Documents
             .find({
               where: {

@@ -90,6 +90,29 @@ const userController = {
       });
   },
 
+  listUsersAndDocuments(req, res) {
+    Roles.findById(req.decoded.userRole)
+    .then(() => {
+      if (req.decoded.userRole === 1) {
+        return User
+        .findAll({
+          include: [{
+            model: Documents,
+            as: 'myDocuments'
+          }]
+        })
+        .then(user => res.status(200).send(user))
+        .catch(() => res.status(400).send({ message: 'Connection Error' }));
+      } else if (req.decoded.userRole === 2) {
+        return res.status(400).send({
+          message: 'Access Denied. You are the Editor. Contact the Administrator'
+        });
+      }
+      return res.status(400).send({
+        message: 'Access Denied. You can not see registered subscribers'
+      });
+    });
+  },
   listUsersPage(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
