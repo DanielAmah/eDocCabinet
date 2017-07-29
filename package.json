@@ -6,8 +6,11 @@
   "scripts": {
     "start": "npm run build && gulp",
     "build": "gulp dev",
+    "postinstall": "node node_modules/gulp/bin/gulp dev",
     "dev": "npm run build && gulp",
-    "test": "npm run build && gulp coverage && gulp coveralls"
+    "db:migrate:test": "NODE_ENV=test sequelize db:migrate",
+    "db:seed:test": "NODE_ENV=test sequelize db:seed:all",
+    "test": "NODE_ENV=test npm run build && gulp coverage && gulp coveralls && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
   },
   "repository": {
     "type": "git",
@@ -39,8 +42,11 @@
     "dotenv": "^4.0.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb": "^15.0.2",
+    "eslint-config-airbnb-base": "^11.3.1",
     "eslint-plugin-import": "^2.7.0",
+    "expect": "^1.20.2",
     "express": "^4.15.3",
+    "express-validator": "^3.2.1",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-babel-istanbul": "^1.6.0",

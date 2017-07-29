@@ -6,8 +6,14 @@ import istanbul from 'gulp-istanbul';
 import injectModules from 'gulp-inject-modules';
 import exit from 'gulp-exit';
 import coveralls from 'gulp-coveralls';
-import mocha from 'gulp-mocha';
 
+process.env.NODE_ENV = 'test';
+
+const jasmineNodeOpts = {
+  timeout: 200000,
+  includeStackTrace: false,
+  color: true
+};
 
 gulp.task('nodemon', () => {
   nodemon({
@@ -28,38 +34,13 @@ gulp.task('default', ['dev', 'nodemon'], () => {
   gulp.watch('server/**/*.js', ['dev']);
 });
 
-// const jasmineNodeOpts = {
-//   timeout: 200000,
-//   includeStackTrace: false,
-//   color: true
-// };
+gulp.task('api-tests', () => {
+  gulp.src('./test/**/*.js')
+    .pipe(babel())
+    .pipe(jasmineNode(jasmineNodeOpts))
+    .pipe(exit());
+});
 
-// gulp.task('api-tests', () => {
-//   gulp.src('./test/server**/*.js')
-//     .pipe(babel())
-//     .pipe(jasmineNode(jasmineNodeOpts));
-// });
-
-gulp.task('coveralls', () => gulp.src('./coverage/lcov')
-    .pipe(coveralls()));
-
-// gulp.task('default', () =>
-//     gulp.src('./test/server**/*.js')
-//         // gulp-jasmine works on filepaths so you can't have any plugins before it
-//         .pipe(jasmine())
-// );
-gulp.task('pre-test', () => gulp.src(['test/server/*.js'])
-    // Covering files
-    .pipe(istanbul())
-    // Force `require` to return covered files
-    .pipe(istanbul.hookRequire()));
-
-gulp.task('test', ['pre-test'], () => gulp.src(['test/server/*.js'])
-    .pipe(mocha())
-    // Creating the reports after tests ran
-    .pipe(istanbul.writeReports())
-    // Enforce a coverage of at least 90%
-    .pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } })));
 
 gulp.task('coverage', (cb) => {
   gulp.src('build/controllers/*.js')
@@ -71,7 +52,7 @@ gulp.task('coverage', (cb) => {
       .pipe(injectModules())
       .pipe(jasmineNode())
       .pipe(istanbul.writeReports())
-      .pipe(istanbul.enforceThresholds({ thresholds: { global: 30 } }))
+      .pipe(istanbul.enforceThresholds({ thresholds: { global: 60 } }))
       .on('end', cb)
       .pipe(exit());
     });

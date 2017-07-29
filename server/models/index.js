@@ -1,22 +1,19 @@
-import fs from 'fs';
-import path from 'path';
-import Sequelize from 'sequelize';
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
 
 const basename = path.basename(module.filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require('../../server/config/config.js')[env];
+const config = require('../config/config.js')[env];
 
 const db = {};
 
 let sequelize;
 if (config.use_env_variable) {
-  sequelize = new Sequelize('postgres://fwtmfhbj:vimJyjFmuKa0U3MsemOGr-_n1MjkDTlp@pellefant.db.elephantsql.com:5432/fwtmfhbj', {
-    dialect: 'postgres'
-  });
+  sequelize = new Sequelize(process.env[config.use_env_variable]);
 } else {
-  sequelize = new Sequelize('postgres://fwtmfhbj:vimJyjFmuKa0U3MsemOGr-_n1MjkDTlp@pellefant.db.elephantsql.com:5432/fwtmfhbj', {
-    dialect: 'postgres'
-  }
+  sequelize = new Sequelize(
+    config.database, config.username, config.password, config
   );
 }
 
