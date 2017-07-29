@@ -10,7 +10,12 @@
     "dev": "npm run build && gulp",
     "db:migrate:test": "NODE_ENV=test sequelize db:migrate",
     "db:seed:test": "NODE_ENV=test sequelize db:seed:all",
-    "test": "NODE_ENV=test npm run build && gulp coverage && gulp coveralls && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+    "test": "NODE_ENV=test npm run build && gulp coverage && gulp coveralls && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "devsetup":"export DATABASE_URL=postgres://tdfoazqe:Kn2hiIM00Xrr7THTBwBCD6T-y1wKM5ZV@stampy.db.elephantsql.com:5432/tdfoazqe",
+    "testsetup":"export TEST_URL=postgres://vlbkoudn:t9sYfr3OBbzouIWsQckIGSNIYzTJA3ok@pellefant.db.elephantsql.com:5432/vlbkoudn",
+    "prodsetup":"export PROD_URL=postgres://qgsbthiy:LOpDQjkDgaQ2lhBEudMCn2nAdqtfo6oK@pellefant.db.elephantsql.com:5432/qgsbthiy",
+    "db:migrate:prod": "NODE_ENV=production sequelize db:migrate",
+    "db:seed:prod": "NODE_ENV=production sequelize db:seed:all"
   },
   "repository": {
     "type": "git",
