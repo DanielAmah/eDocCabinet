@@ -18,6 +18,7 @@ const Routes = (app) => {
   app.use(authentication.verifyUser);
   app.get('/api/v1/users/page', userController.listUsersPage);
   app.get('/api/v1/users/', userController.listUsers);
+  app.get('/api/v1/users-docs/', userController.listUsersAndDocuments);
   app.put('/api/v1/users/:userId', userController.updateUsers);
   app.get('/api/v1/users/:userId', userController.findUsers);
   app.delete('/api/v1/users/:userId', userController.deleteUsers);
@@ -36,6 +37,7 @@ const Routes = (app) => {
   // all Role routes
   app.post('/api/v1/roles/', roleController.newRole);
   app.get('/api/v1/roles', roleController.listRoles);
+  app.get('/api/v1/roles-users/', roleController.listRolesAndUsers);
   app.get('*', (req, res) => res.status(404).send({
     message: 'The page you are looking for does not exist'
   }));

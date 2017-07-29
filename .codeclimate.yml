@@ -10,3 +10,4 @@ ratings:
   - "**.js"
 exclude_paths:
 - "tests"
+- node_modules/**/*
