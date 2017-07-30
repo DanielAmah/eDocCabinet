@@ -5,10 +5,7 @@ module.exports = {
     dialect: 'postgres'
   },
   test: {
-    username: 'andeladeveloper',
-    password: 'andela2017Sholada1',
-    database: 'edocman',
-    host: '127.0.0.1',
+    use_env_variable: 'TEST_URL',
     dialect: 'postgres'
   },
   production: {
