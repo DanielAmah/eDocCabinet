@@ -1,15 +1,19 @@
-
 module.exports = {
   development: {
-    use_env_variable: 'DATABASE_URL',
-    dialect: 'postgres'
+    username: 'postgres',
+    password: 'postgres',
+    database: 'apitest',
+    host: '127.0.0.1',
+    dialect: 'postgres',
+    logging: false
   },
   test: {
-    username: 'andeladeveloper',
-    password: 'andela2017Sholada1',
-    database: 'edocman',
+    username: 'postgres',
+    password: 'postgres',
+    database: 'apitest',
     host: '127.0.0.1',
-    dialect: 'postgres'
+    dialect: 'postgres',
+    logging: false
   },
   production: {
     use_env_variable: 'DATABASE_URL',
