@@ -1,6 +1,6 @@
 {
   "name": "edoccabinet",
-  "description": "",
+  "description": "A document Management System API",
   "scripts": {
   },
   "env": {
@@ -14,7 +14,7 @@
   "formation": {
   },
   "addons": [
-    "mongolab"
+    "postgresql"
   ],
   "buildpacks": [
     {
