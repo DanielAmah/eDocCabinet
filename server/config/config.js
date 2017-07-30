@@ -1,26 +1,18 @@
 
-require('dotenv').config();
-
 module.exports = {
   development: {
-    username: process.env.USER,
-    password: process.env.PASSWORD,
-    database: process.env.DATABASE,
-    host: process.env.HOST,
-    port: 5432,
+    use_env_variable: 'DATABASE_URL',
     dialect: 'postgres'
-
   },
   test: {
-    username: process.env.USER,
-    password: process.env.PASSWORD,
-    database: process.env.TESTDATABASE,
-    host: process.env.HOST,
-    port: 5432,
+    username: 'andeladeveloper',
+    password: 'andela2017Sholada1',
+    database: 'edocman',
+    host: '127.0.0.1',
     dialect: 'postgres'
   },
   production: {
-    use_env_variable: process.env.DATABASE_URL,
+    use_env_variable: 'DATABASE_URL',
     dialect: 'postgres'
   }
 };
