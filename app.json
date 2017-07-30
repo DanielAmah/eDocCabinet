@@ -1,0 +1,24 @@
+{
+  "name": "edoccabinet",
+  "description": "A document Management System API",
+  "scripts": {
+  },
+  "env": {
+    "TEST_URI": {
+      "required": true
+    },
+    "DATABASE_URL": {
+      "required": true
+    }
+  },
+  "formation": {
+  },
+  "addons": [
+    "postgresql"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}

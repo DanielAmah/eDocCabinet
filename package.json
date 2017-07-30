@@ -4,7 +4,7 @@
   "description": "A Document Management System",
   "main": "server/server.js",
   "scripts": {
-    "start": "npm run build && gulp",
+    "start": "npm run devsetup && npm run prodsetup && npm run testsetup && npm run build && gulp",
     "build": "gulp dev",
     "postinstall": "node node_modules/gulp/bin/gulp dev",
     "dev": "npm run build && gulp",
