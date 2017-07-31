@@ -1,3 +1,5 @@
+import path from 'path';
+
 import authentication from '../middleware/authentication';
 import documentController from '../controllers/document';
 import roleController from '../controllers/role';
@@ -5,9 +7,12 @@ import userController from '../controllers/user';
 
 
 const Routes = (app) => {
-  app.get('/', (req, res) => res.status(200).send({
-    message: 'Welcome to E-DocCabinet - A document management API',
-  }));
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
+  });
+  app.post('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
+  });
 
   app.post('/', (req, res) => res.status(200).send({
     message: 'Welcome to E-DocCabinet - A document management API',
@@ -38,6 +43,7 @@ const Routes = (app) => {
   app.post('/api/v1/roles/', roleController.newRole);
   app.get('/api/v1/roles', roleController.listRoles);
   app.get('/api/v1/roles-users/', roleController.listRolesAndUsers);
+
   app.get('*', (req, res) => res.status(404).send({
     message: 'The page you are looking for does not exist'
   }));
