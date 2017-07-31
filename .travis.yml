@@ -1,14 +1,13 @@
 language: node_js
-node_js: 
-  - "node"
+node_js:
+  - "7"
 cache:
   directories:
     - node_modules
 install: [ "npm install"]
-before_script:
-- npm install -g gulp-cli
-install: npm install
-script: npm test
+addons:
+  coveralls:
+    coveralls: AxxFOTS4QO4pnTzf9gAmU7qeyhuCrn8KW
 after_script:
   - ./node_modules/.bin/gulp coveralls
 after_success:
