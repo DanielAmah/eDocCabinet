@@ -361,9 +361,33 @@ Endpoint for document API.
 ## How to contribute
 To contribute, fork this repo to your private repository and create a pull request based on the feature you want to add.
 
+## API Documentation
+The API documentation is found homepage of the hosted API https://edoccabinet.herokuapp.com
+
 ## FAQs and Issues
 
 Click **[FAQs and Issues](https://github.com/DanielAmah/eDocCabinet/issues)**. for issues and questions.
+
+
+### Do I need to pay to use the API ?
+
+No, its free for everyone.
+
+### How do I connect to the API?
+
+You need to request a resource from one of the endpoints using HTTPS. Generally, reading any data is done through a request with GET method. If you want our server to create, update or delete a given resource, POST or PUT methods are required.
+
+## What return formats do you support?
+
+eDocCabinet API currently returns data in ```JSON``` format.
+
+## What kind of authentication is required?
+
+All endpints except login and signup are protected. Users requre ```token``` to access all protected endpoints. ```Token``` is sent to client after successful signup and login. Token must be set as authorization in the ```http request header``` to access the protected routes
+
+
+# Limitations
+The application uses shared database package, this may lead to slow in response at some point. It also has query limit per day, once exceeded client won't get any response till the next day.
 
 ## License
 
