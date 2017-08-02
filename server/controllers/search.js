@@ -38,7 +38,7 @@ const searchController = {
               }
               return res.status(200).send(user);
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return res.status(400).send({
           message: 'Access Denied'
@@ -79,7 +79,7 @@ const searchController = {
               }
               return res.status(200).send(document);
             })
-            .catch(() => res.status(400).send('Connection Error'));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return Documents
           .findAll({
@@ -98,7 +98,7 @@ const searchController = {
             }
             return res.status(200).send(document);
           })
-          .catch(() => res.status(400).send('Connection Error'));
+          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
       });
   },
 

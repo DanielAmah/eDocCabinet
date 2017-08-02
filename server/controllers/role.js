@@ -20,7 +20,7 @@ const roleController = {
             .then(() => res.status(201).send({
               message: 'Roles created successfully'
             }))
-            .catch(() => res.status(400).send('Connection Error'));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return res.status(400).send({
           message: 'Access Denied'
@@ -43,7 +43,7 @@ const roleController = {
               attributes: ['id', 'title', 'createdAt']
             })
             .then(roles => res.status(200).send(roles))
-            .catch(() => res.status(400).send('Connection Error'));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return res.status(400).send({
           message: 'Access Denied'
@@ -71,7 +71,7 @@ const roleController = {
                }]
              })
             .then(roles => res.status(200).send(roles))
-            .catch(() => res.status(400).send('Connection Error'));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return res.status(400).send({
           message: 'Access Denied'

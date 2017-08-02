@@ -112,7 +112,7 @@ const documentController = {
                   currentPage,
                 }; res.status(200).send({ documents, meta });
               })
-            .catch(() => res.status(400).send('Connection Error'));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return Documents
           .findAll({
@@ -120,7 +120,7 @@ const documentController = {
             attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
           })
           .then(documents => res.status(200).send(documents))
-          .catch(() => res.status(400).send('Connection Error'));
+          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
       });
   },
    /**
@@ -154,7 +154,7 @@ const documentController = {
               }
               return res.status(200).send(document);
             })
-            .catch(() => res.status(400).send('Connection Error'));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return Documents
           .find({
@@ -172,7 +172,7 @@ const documentController = {
             }
             return res.status(200).send(document);
           })
-          .catch(() => res.status(400).send('Connection Error'));
+          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
       });
   },
    /**
@@ -209,9 +209,9 @@ const documentController = {
                 .destroy()
                 .then(() => res.status(200)
                   .send({ message: 'The Document has been deleted successfully.' }))
-                .catch(() => res.status(400).send('Connection Error'));
+                .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
             })
-            .catch(() => res.status(400).send('Connection Error'));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return Documents
           .find({
@@ -230,9 +230,9 @@ const documentController = {
               .destroy()
               .then(() => res.status(200)
                 .send({ message: 'The Document has been deleted successfully.' }))
-              .catch(() => res.status(400).send('Connection Error'));
+              .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
           })
-          .catch(() => res.status(400).send('Connection Error'));
+          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
       });
   }
 };
