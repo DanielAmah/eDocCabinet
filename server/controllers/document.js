@@ -1,5 +1,8 @@
+import Pagination from '../../utils/pagination';
+
 const Documents = require('../models').Documents;
 const Roles = require('../models').Roles;
+
 
 const documentController = {
   newDocument(req, res) {
@@ -62,41 +65,30 @@ const documentController = {
       })
       .catch(() => res.status(400).send('Connection Error'));
   },
-  showDocumentsPage(req, res) {
-    const limit = req.query && req.query.limit ? req.query.limit : 0;
-    const offset = req.query && req.query.offset ? req.query.offset : 0;
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
-          return Documents
-            .findAll({
-              attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
-              limit,
-              offset,
-            })
-            .then(documents => res.status(200).send(documents))
-            .catch(() => res.status(400).send('Connection Error'));
-        }
-        return Documents
-          .findAll({
-            where: { access: [req.decoded.userRole, 'public'] },
-            attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
-            limit,
-            offset,
-          })
-          .then(documents => res.status(200).send(documents))
-          .catch(() => res.status(400).send('Connection Error'));
-      });
-  },
   showDocuments(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
         if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
+          const limit = req.query && req.query.limit ? req.query.limit : 10;
+          const offset = req.query && req.query.offset ? req.query.offset : 0;
           return Documents
-            .findAll({
-              attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt']
+            .findAndCountAll({
+              attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
+              limit,
+              offset,
             })
-            .then(documents => res.status(200).send(documents))
+              .then((documents) => {
+                const totalUserCount = documents.count;
+                const pageSize = Pagination.getPageSize(limit);
+                const pageCount = Pagination.getPageCount(totalUserCount, limit);
+                const currentPage = Pagination.getCurrentPage(limit, offset);
+                const meta = {
+                  totalUserCount,
+                  pageSize,
+                  pageCount,
+                  currentPage,
+                }; res.status(200).send({ documents, meta });
+              })
             .catch(() => res.status(400).send('Connection Error'));
         }
         return Documents
@@ -151,52 +143,6 @@ const documentController = {
           .catch(() => res.status(400).send('Connection Error'));
       });
   },
-  searchDocument(req, res) {
-    if (!req.query.q) {
-      return res.send({
-        message: 'No key word supplied'
-      });
-    }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
-          return Documents
-            .findAll({
-              where: {
-                title: (req.query.q).toLowerCase()
-              },
-              attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
-            })
-            .then((document) => {
-              if (document.length === 0) {
-                return res.status(404).send({
-                  message: 'Document Not Found',
-                });
-              }
-              return res.status(200).send(document);
-            })
-            .catch(() => res.status(400).send('Connection Error'));
-        }
-        return Documents
-          .findAll({
-            where: {
-              userId: req.decoded.userId,
-              title: (req.query.q).toLowerCase(),
-              access: [req.decoded.userRole, 'private', 'public'],
-            },
-            attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
-          })
-          .then((document) => {
-            if (document.length === 0) {
-              return res.status(404).send({
-                message: 'Document Not Found',
-              });
-            }
-            return res.status(200).send(document);
-          })
-          .catch(() => res.status(400).send('Connection Error'));
-      });
-  },
   deleteDocument(req, res) {
     if (!Number.isInteger(Number(req.params.documentId))) {
       return res.status(400).send({
@@ -214,7 +160,7 @@ const documentController = {
             })
             .then((document) => {
               if (!document) {
-                return res.status(400).send({
+                return res.status(404).send({
                   message: 'Document Not Found',
                 });
               }

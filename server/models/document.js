@@ -17,10 +17,6 @@ export default (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
   });
   Documents.associate = (models) => {
     Documents.belongsTo(models.Users, {
