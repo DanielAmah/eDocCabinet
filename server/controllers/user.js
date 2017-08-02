@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import Pagination from '../../utils/pagination';
 
 require('dotenv').config();
 
@@ -36,48 +37,31 @@ const userController = {
       })
       .catch(error => res.status(400).send(error));
   },
-
-  login(req, res) {
-    return User
-      .findOne({
-        where: {
-          username: req.body.username
-        }
-      }).then((user) => {
-        if (!user) {
-          res.status(400).send({ message: 'User not found' });
-        }
-        const passkey = bcrypt.compareSync(req.body.password, user.password);
-        if (passkey) {
-          const token = jwt.sign({
-            userId: user.id,
-            userRole: user.roleId,
-            userUsername: user.username,
-            userEmail: user.email,
-          }, process.env.SECRET, {
-            expiresIn: '2h'
-          });
-          res.status(200).send({
-            success: true,
-            message: `Login Successful. Token generated. Welcome back!! ${user.username}`,
-            userId: user.id,
-            token,
-          });
-        } else {
-          res.status(400).send({ message: 'Password is incorrect' });
-        }
-      })
-      .catch(error => res.send(error));
-  },
   listUsers(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
         if (req.decoded.userRole === 1) {
+          const limit = req.query && req.query.limit ? req.query.limit : 10;
+          const offset = req.query && req.query.offset ? req.query.offset : 0;
           return User
-            .findAll({
+            .findAndCountAll({
               attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
+              limit,
+              offset,
             })
-            .then(user => res.status(200).send(user))
+            .then((user) => {
+              const totalUserCount = user.count;
+              const pageSize = Pagination.getPageSize(limit);
+              const pageCount = Pagination.getPageCount(totalUserCount, limit);
+              const currentPage = Pagination.getCurrentPage(limit, offset);
+              const meta = {
+                totalUserCount,
+                pageSize,
+                pageCount,
+                currentPage,
+              };
+              res.status(200).send({ user, meta });
+            })
             .catch(() => res.status(400).send({ message: 'Connection Error' }));
         } else if (req.decoded.userRole === 2) {
           return res.status(400).send({
@@ -89,7 +73,6 @@ const userController = {
         });
       });
   },
-
   listUsersAndDocuments(req, res) {
     Roles.findById(req.decoded.userRole)
     .then(() => {
@@ -112,30 +95,6 @@ const userController = {
         message: 'Access Denied. You can not see registered subscribers'
       });
     });
-  },
-  listUsersPage(req, res) {
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1) {
-          const limit = req.query && req.query.limit ? req.query.limit : 0;
-          const offset = req.query && req.query.offset ? req.query.offset : 0;
-          return User
-            .findAll({
-              attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
-              limit,
-              offset,
-            })
-            .then(user => res.status(200).send(user))
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
-        } else if (req.decoded.userRole === 2) {
-          return res.status(400).send({
-            message: 'As the Editor please contact the Administrator to grant you temporary access'
-          });
-        }
-        return res.status(400).send({
-          message: 'Access Denied. You can not see register subscribers'
-        });
-      });
   },
   updateUsers(req, res) {
     if (!Number.isInteger(Number(req.params.userId))) {
@@ -332,36 +291,6 @@ const userController = {
         }
         return res.status(400).send({
           message: 'Access Denied',
-        });
-      });
-  },
-  searchUsers(req, res) {
-    if (!req.query.q) {
-      return res.send({
-        message: 'No key word supplied'
-      });
-    }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1) {
-          return User
-            .findAll({
-              where: {
-                username: (req.query.q).toLowerCase()
-              }
-            })
-            .then((user) => {
-              if (user.length === 0) {
-                return res.status(404).send({
-                  message: 'User does not exist',
-                });
-              }
-              return res.status(200).send(user);
-            })
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
-        }
-        return res.status(400).send({
-          message: 'Access Denied'
         });
       });
   },
