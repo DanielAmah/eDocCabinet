@@ -1,10 +1,10 @@
 /**
-   * Defines users model
+   * Defines Users model
    * @param {object} sequelize
    * @param {object} DataTypes
    * @return {object} - returns instance of the model
    */
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const Users = sequelize.define('Users', {
     email: {
       type: DataTypes.STRING,

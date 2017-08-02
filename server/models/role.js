@@ -4,7 +4,7 @@
    * @param {object} DataTypes
    * @return {object} - returns instance of the model
    */
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const Roles = sequelize.define('Roles', {
     title: {
       type: DataTypes.STRING,

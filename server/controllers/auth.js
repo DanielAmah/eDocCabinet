@@ -5,11 +5,13 @@ require('dotenv').config();
 
 
 const User = require('../models/').Users;
-/**
-* @function authController
-* @param  {object} const authController = { {authenticate users using JSON web token(JWT)}
-* @return {object} {returns a response(object) if user is successfully logged in or an error}
-*/
+  /**
+   * login: Enables users to login to their accounts
+   * @function login
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
 const authController = {
   login(req, res) {
     return User
@@ -38,8 +40,6 @@ const authController = {
             token,
           });
         } else {
-          console.log(req.body);
-          console.log('am not good');
           res.status(400).send({ message: 'Password is incorrect' });
         }
       })

@@ -1,3 +1,9 @@
+/**
+   * Defines Document model
+   * @param {object} sequelize
+   * @param {object} DataTypes
+   * @return {object} - returns instance of the model
+   */
 export default (sequelize, DataTypes) => {
   const Documents = sequelize.define('Documents', {
     title: {

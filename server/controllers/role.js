@@ -2,6 +2,13 @@ const Roles = require('../models').Roles;
 const User = require('../models/').Users;
 
 const roleController = {
+     /**
+   *  newRole: This allows admin to create a new role
+   * @function newRole
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
   newRole(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
@@ -20,6 +27,13 @@ const roleController = {
         });
       });
   },
+     /**
+   * listRoles: This allows admin to list all roles
+   * @function  listRoles
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
   listRoles(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
@@ -36,6 +50,14 @@ const roleController = {
         });
       });
   },
+
+      /**
+   * listRolesAndUsers: This allows admin to list all roles
+   * @function  listRolesAndUsers
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
 
   listRolesAndUsers(req, res) {
     Roles.findById(req.decoded.userRole)
