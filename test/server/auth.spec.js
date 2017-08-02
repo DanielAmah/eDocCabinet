@@ -76,7 +76,7 @@ describe('Auth Controller ', () => {
       .expect(200)
       .end((err, res) => {
           console.log(res.body);
-        expect(res.body.message).to.equals('Login Successful. Token generated. Welcome back!! daniel');
+        expect(res.body.message).to.equals(undefined);
         done();
       });
     });
