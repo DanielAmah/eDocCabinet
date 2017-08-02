@@ -23,7 +23,7 @@ const userController = {
         email: req.body.email,
         username: req.body.username,
         password,
-        roleId: 3,
+        roleId: req.body.roleId,
       })
       .then((user) => {
         const token = jwt.sign({
