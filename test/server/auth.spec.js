@@ -60,20 +60,18 @@ describe('Auth Controller ', () => {
     });
   });
      it('responds with a 200 to a valid login request', (done) => {
-    const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-      .post('/api/v1/users/')
-      .send({
-        email: 'daniel@daniel.com',
-        username: 'daniel',
-        password: password,
-        roleId: 3
-      }).then((res) => {
+    const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
+    User.create({
+      email: 'admin@admin.com',
+      username: 'admin',
+      password: password,
+      roleId: 1
+    }).then((res) => {
       request(app)
       .post('/api/v1/users/login')
       .send({
-        username: 'daniel',
-        password: 'jack',
+        username: 'admin',
+        password: 'admin',
       })
       .expect(200)
       .end((err, res) => {
@@ -84,17 +82,17 @@ describe('Auth Controller ', () => {
     });
   });
        it('responds with message - password incorrect', (done) => {
-    const password = bcrypt.hashSync('james', bcrypt.genSaltSync(10));
+    const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
+      email: 'admin@admin.com',
+      username: 'admin',
       password: password,
-      roleId: 3
+      roleId: 1
     }).then((res) => {
       request(app)
       .post('/api/v1/users/login')
       .send({
-        username: 'daniel',
+        username: 'admin',
         password: 'jack',
       })
       .expect(200)
