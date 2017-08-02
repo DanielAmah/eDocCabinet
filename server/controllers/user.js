@@ -173,11 +173,11 @@ const userController = {
                         username: user.username,
                         role: user.roleId
                       }))
-                      .catch(() => res.status(400).send({ message: 'Connection Error' }));
+                      .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
                   })
-                  .catch(() => res.status(400).send({ message: 'Connection Error' }));
+                  .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
               })
-              .catch(() => res.status(400).send({ message: 'Connection Error' }));
+              .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
           }
           return User
             .findById(req.params.userId)
@@ -198,9 +198,9 @@ const userController = {
                   username: user.username,
                   role: user.roleId
                 }))
-                .catch(() => res.status(400).send({ message: 'Connection Error' }));
+                .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         if (req.body.email) {
           return User.find({
@@ -236,11 +236,11 @@ const userController = {
                       username: user.username,
                       role: user.roleId
                     }))
-                    .catch(() => res.status(400).send({ message: 'Connection Error' }));
+                    .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
                 })
-                .catch(() => res.status(400).send({ message: 'Connection Error' }));
+                .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return User
           .findById(req.params.userId)
@@ -264,9 +264,9 @@ const userController = {
                 username: user.username,
                 role: user.roleId
               }))
-              .catch(() => res.status(400).send({ message: 'Connection Error' }));
+              .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
           })
-          .catch(() => res.status(400).send({ message: 'Connection Error' }));
+          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
       });
   },
   /**
@@ -336,9 +336,9 @@ const userController = {
                 .destroy()
                 .then(() => res.status(200)
                   .send({ message: 'User deleted successfully.' }))
-                .catch(() => res.status(400).send({ message: 'Connection Error' }));
+                .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return res.status(400).send({
           message: 'Access Denied',
@@ -377,7 +377,7 @@ const userController = {
               }
               return res.status(200).send(documents);
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
+            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
         }
         return res.status(400).send({
           message: 'Access Denied'
