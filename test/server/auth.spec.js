@@ -61,12 +61,14 @@ describe('Auth Controller ', () => {
   });
      it('responds with a 200 to a valid login request', (done) => {
     const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
+    request(app)
+      .post('/api/v1/users/')
+      .send({
+        email: 'daniel@daniel.com',
+        username: 'daniel',
+        password: password,
+        roleId: 3
+      }).then((res) => {
       request(app)
       .post('/api/v1/users/login')
       .send({
@@ -103,7 +105,7 @@ describe('Auth Controller ', () => {
       });
     });
   });
-        it('responds with message user not found', (done) => {
+        it('responds with a 200 to a valid login request', (done) => {
     const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
     User.create({
       email: 'daniel@daniel.com',
