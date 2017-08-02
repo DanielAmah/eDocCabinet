@@ -7,7 +7,7 @@ cache:
 install: [ "npm install"]
 addons:
   coveralls:
-    coveralls: AxxFOTS4QO4pnTzf9gAmU7qeyhuCrn8KW
+    coveralls: vYZo0Iba9NM0IYHjWYIy3QyoM5ZCptb9G
 after_script:
   - ./node_modules/.bin/gulp coveralls
 after_success:
