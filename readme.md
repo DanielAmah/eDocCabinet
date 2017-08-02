@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/DanielAmah/eDocCabinet.svg?branch=development)](https://travis-ci.org/DanielAmah/eDocCabinet)
+[![Build Status](https://travis-ci.org/DanielAmah/eDocCabinet.svg?branch=fix-all-badge)](https://travis-ci.org/DanielAmah/eDocCabinet)
 [![Coverage Status](https://coveralls.io/repos/github/DanielAmah/eDocCabinet/badge.svg?branch=fix-test-online)](https://coveralls.io/github/DanielAmah/eDocCabinet?branch=fix-test-online)
 [![Code Climate](https://codeclimate.com/github/DanielAmah/eDocCabinet/badges/gpa.svg)](https://codeclimate.com/github/DanielAmah/eDocCabinet)
 [![Issue Count](https://codeclimate.com/github/DanielAmah/eDocCabinet/badges/issue_count.svg)](https://codeclimate.com/github/DanielAmah/eDocCabinet)

@@ -37,17 +37,7 @@ const Routes = (app) => {
   app.get('/api/v1/roles', roleController.listRoles);
   app.get('/api/v1/roles-users/', roleController.listRolesAndUsers);
 
-  app.get('*', (req, res) => res.status(404).send({
-    message: 'The page you are looking for does not exist'
-  }));
-
-  app.post('*', (req, res) => res.status(404).send({
-    message: 'The page you are looking for does not exist'
-  }));
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
-  });
-  app.post('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
   });
 };
