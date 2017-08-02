@@ -8,12 +8,8 @@
     "port": 5432
   },
   "test": {
-   "username": "",
-    "password": null,
-    "database": "edocmantest",
-    "host": "127.0.0.1",
-    "dialect": "postgres",
-    "port": 5432
+   "use_env_variable": "DEV_URL",
+  "dialect": "postgres"
   },
   "production": {
   "use_env_variable": "DATABASE_URL",
