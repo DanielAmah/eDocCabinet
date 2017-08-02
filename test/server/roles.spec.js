@@ -195,37 +195,37 @@ it('should be list all roles as admin', (done) => {
             });
         });
      });
-    //   it('should not get roles if any one else logged in', (done) => {
-    //    const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    // request(app)
-    // User.create({
-    //   email: 'daniel@daniel.com',
-    //   username: 'daniel',
-    //   password: password,
-    //   roleId: 3
-    // }).then((res) => {
-    //   request(app)
-    //   .post('/api/v1/users/login')
-    //   .send({
-    //     username: 'daniel',
-    //     password: 'jack',
-    //   })
-    //   .expect(200)
-    //   .end((err, res) => {
-    //       token = res.body.token;
-    //       request(app)
-    //         .get('/api/v1/roles')
-    //         .set('Authorization', `${token}`)
-    //         .set('Accept', 'application/json')
-    //         .expect('Content-Type', /json/)
-    //         .expect(400)
-    //             .end((err, res) => {
-    //           expect(res.body.message).to.equal('Access Denied');
-    //               done();
-    //             });
-    //         });
-    //     });
-    //  });
+      it('should not get roles if any one else logged in', (done) => {
+       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
+    request(app)
+    User.create({
+      email: 'daniel@daniel.com',
+      username: 'daniel',
+      password: password,
+      roleId: 3
+    }).then((res) => {
+      request(app)
+      .post('/api/v1/users/login')
+      .send({
+        username: 'daniel',
+        password: 'jack',
+      })
+      .expect(200)
+      .end((err, res) => {
+          token = res.body.token;
+          request(app)
+            .get('/api/v1/roles')
+            .set('Authorization', `${token}`)
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(400)
+                .end((err, res) => {
+              expect(res.body.message).to.equal('Access Denied');
+                  done();
+                });
+            });
+        });
+     });
 
      it('should be display a 404 code if the user goes to a wrong route', (done) => {
        const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
