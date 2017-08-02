@@ -5,6 +5,13 @@ const Roles = require('../models').Roles;
 
 
 const documentController = {
+   /**
+   * newDocument: This allows registered users create documents
+   * @function createDocument
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
   newDocument(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
@@ -30,6 +37,13 @@ const documentController = {
         });
       });
   },
+   /**
+   * updateDocument: This allows registered users update saved documents
+   * @function updateDocument
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
   updateDocument(req, res) {
     if (!Number.isInteger(Number(req.params.documentId))) {
       return res.status(400).json({
@@ -65,6 +79,15 @@ const documentController = {
       })
       .catch(() => res.status(400).send('Connection Error'));
   },
+    /**
+   * showDocuments: This allows registered users get saved documents,
+   * where role = "user's role" and public documents.
+   * It gets all available documents both privates and public for admin users
+   * @function listDocuments
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
   showDocuments(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
@@ -100,6 +123,15 @@ const documentController = {
           .catch(() => res.status(400).send('Connection Error'));
       });
   },
+   /**
+   * findDocument: This allows registered users get documents by ID
+   * where role = "user's role" and public documents,
+   * Its gets document either privates or public for admin user
+   * @function findDocument
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
   findDocument(req, res) {
     if (!Number.isInteger(Number(req.params.documentId))) {
       return res.json({
@@ -143,6 +175,15 @@ const documentController = {
           .catch(() => res.status(400).send('Connection Error'));
       });
   },
+   /**
+   * deleteDocument:
+   * This allows registered users to delete thier documents by ID
+   * Admin users can also delete user's documents with by just ID
+   * @function deleteDocument
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
   deleteDocument(req, res) {
     if (!Number.isInteger(Number(req.params.documentId))) {
       return res.status(400).send({

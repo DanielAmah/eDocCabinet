@@ -8,7 +8,13 @@ const Roles = require('../models').Roles;
 
 
 const searchController = {
-
+/**
+   * searchUsers: Enables users to search for other registered users
+   * @function searchUser
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
   searchUsers(req, res) {
     if (!req.query.q) {
       return res.send({
@@ -39,6 +45,16 @@ const searchController = {
         });
       });
   },
+    /**
+   * searchDocument: This allows registered users get documents by search key
+   * where role = "user's role" and userId = "user's ID"  and
+   * public & private document.
+   * Its gets document either privates or public for admin user
+   * @function searchDocument
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object} - returns response status and json data
+   */
   searchDocument(req, res) {
     if (!req.query.q) {
       return res.send({

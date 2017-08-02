@@ -8,7 +8,13 @@ require('dotenv').config();
 const User = require('../models/').Users;
 const Documents = require('../models').Documents;
 const Roles = require('../models').Roles;
-
+  /**
+   * signUp: To creating accounts for users
+   * @function signUp
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
 const userController = {
   signup(req, res) {
     const password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
@@ -37,6 +43,22 @@ const userController = {
       })
       .catch(error => res.status(400).send(error));
   },
+    /**
+   * listUsers: Enables users to get list of registered users
+   * query parameters are offset and limit
+   * default offset is 0 and default limit is 10
+   * @function listUsers
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
+   /**
+   * getUserPage: Enables users to get list of registered users by page
+   * @function getUserPage
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
   listUsers(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
@@ -73,6 +95,13 @@ const userController = {
         });
       });
   },
+     /**
+   * listUsersAndDocuments: Enables users to get list of registered users with there documents
+   * @function listUsersAndDocuments
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
   listUsersAndDocuments(req, res) {
     Roles.findById(req.decoded.userRole)
     .then(() => {
@@ -96,6 +125,14 @@ const userController = {
       });
     });
   },
+    /**
+   * updateUser: Enables users to update their information
+   *  where email must be unique
+   * @function updateUser
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
   updateUsers(req, res) {
     if (!Number.isInteger(Number(req.params.userId))) {
       return res.status(400).send({
@@ -232,6 +269,13 @@ const userController = {
           .catch(() => res.status(400).send({ message: 'Connection Error' }));
       });
   },
+  /**
+   * findUsers: Enables users to find other registered users
+   * @function findUser
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
   findUsers(req, res) {
     if (!Number.isInteger(Number(req.params.userId))) {
       return res.status(400).send({
@@ -263,6 +307,13 @@ const userController = {
         });
       });
   },
+    /**
+   * deleteUsers: Enables users and admin users to delete account by ID
+   * @function deleteUser
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
   deleteUsers(req, res) {
     if (!Number.isInteger(Number(req.params.userId))) {
       return res.status(400).send({
@@ -294,6 +345,13 @@ const userController = {
         });
       });
   },
+   /**
+   * findUserDocument: Enables users get documents that belongs to the user
+   * @function findUserDocument
+   * @param {object} req request
+   * @param {object} res response
+   * @return {object}  returns response status and json data
+   */
   findUserDocument(req, res) {
     Roles.findById(req.decoded.userRole)
       .then(() => {
