@@ -10,7 +10,7 @@
     "dev": "npm run build && gulp",
     "cleardb": "NODE_ENV=test sequelize db:migrate:undo:all",
     "pretest": "npm run cleardb && NODE_ENV=test sequelize db:migrate && NODE_ENV=test sequelize db:seed:all",
-    "test": "NODE_ENV=test npm run build && gulp coverage && gulp coveralls",
+    "test": "NODE_ENV=test npm run build && gulp coverage && gulp coveralls && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "migrate": " sequelize db:migrate",
     "seed": "sequelize db:seed:all"
   },
