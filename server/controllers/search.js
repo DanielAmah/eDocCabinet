@@ -1,49 +1,55 @@
+import getRole from '../helpers/Helper';
+import model from '../models/';
 
 require('dotenv').config();
 
 
-const User = require('../models/').Users;
-const Documents = require('../models').Documents;
-const Roles = require('../models').Roles;
+const User = model.Users;
+const Documents = model.Documents;
 
 
 const searchController = {
 /**
    * searchUsers: Enables users to search for other registered users
    * @function searchUser
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request request
+   * @param {object} response response
    * @return {object}  returns response status and json data
    */
-  searchUsers(req, res) {
-    if (!req.query.q) {
-      return res.send({
+  searchUsers(request, response) {
+    if (!request.query.q) {
+      return response.send({
         message: 'No key word supplied'
       });
     }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1) {
-          return User
+    if (getRole.isAdmin(request)) {
+      return User
             .findAll({
               where: {
-                username: (req.query.q).toLowerCase()
-              }
+                $or: [
+                  { email: {
+                    $iLike: `%${request.query.q}%`.toLowerCase()
+                  },
+                    username: {
+                      $iLike: `%${request.query.q}%`.toLowerCase()
+                    } }
+                ]
+              },
+              attributes: ['id', 'email', 'username', 'roleId', 'createdAt']
             })
             .then((user) => {
               if (user.length === 0) {
-                return res.status(404).send({
+                return response.status(404).send({
                   message: 'User does not exist',
                 });
               }
-              return res.status(200).send(user);
+              return response.status(200).send(user);
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-        }
-        return res.status(400).send({
-          message: 'Access Denied'
-        });
-      });
+             .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving Users' }));
+    }
+    return response.status(401).send({
+      message: 'Access Denied'
+    });
   },
     /**
    * searchDocument: This allows registered users get documents by search key
@@ -51,55 +57,60 @@ const searchController = {
    * public & private document.
    * Its gets document either privates or public for admin user
    * @function searchDocument
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request that queries the document database
+   * and search for documents
+   * @param {object} response get a response of queried documents or throws an error
    * @return {object} - returns response status and json data
    */
-  searchDocument(req, res) {
-    if (!req.query.q) {
-      return res.send({
+  searchDocument(request, response) {
+    if (!request.query.q) {
+      return response.send({
         message: 'No key word supplied'
       });
     }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
-          return Documents
+    if (getRole.isAdmin(request) || getRole.Editor(request)) {
+      return Documents
             .findAll({
               where: {
-                title: (req.query.q).toLowerCase()
+                $or: [
+                  { title: {
+                    $iLike: `%${request.query.q}%`.toLowerCase()
+                  }
+                  }
+                ]
               },
               attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
             })
             .then((document) => {
               if (document.length === 0) {
-                return res.status(404).send({
+                return response.status(404).send({
                   message: 'Document Not Found',
                 });
               }
-              return res.status(200).send(document);
+              return response.status(200).send(document);
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-        }
-        return Documents
+            .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents' }));
+    }
+    return Documents
           .findAll({
             where: {
-              userId: req.decoded.userId,
-              title: (req.query.q).toLowerCase(),
-              access: [req.decoded.userRole, 'private', 'public'],
+              userId: request.decoded.userId,
+              title: {
+                $iLike: `%${request.query.q}%`.toLowerCase()
+              },
+              access: [request.decoded.userRole, 'private', 'public'],
             },
             attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
           })
           .then((document) => {
             if (document.length === 0) {
-              return res.status(404).send({
+              return response.status(404).send({
                 message: 'Document Not Found',
               });
             }
-            return res.status(200).send(document);
+            return response.status(200).send(document);
           })
-          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-      });
+           .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents' }));
   },
 
 };

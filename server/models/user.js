@@ -17,7 +17,8 @@ export default (sequelize, DataTypes) => {
         isEmail: {
           args: true,
           msg: 'This email address is invalid'
-        }
+        },
+        len: [5, 200]
       }
     },
     username: {
@@ -26,6 +27,9 @@ export default (sequelize, DataTypes) => {
       unique: {
         args: true,
         msg: 'This username already exists'
+      },
+      validate: {
+        len: [5, 100]
       }
     },
     password: {
@@ -33,7 +37,8 @@ export default (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         notEmpty: true
-      }
+      },
+      len: [5, 100]
     },
     roleId: {
       type: DataTypes.INTEGER,
