@@ -60,7 +60,7 @@ describe('Search Controller ', () => {
     });
   });
 
-      it('should return a no key word supplied', (done) => {
+      it('should return a no key word supplied when no search term', (done) => {
        const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     request(app)
     User.create({
@@ -83,7 +83,7 @@ describe('Search Controller ', () => {
             .set('Authorization', `${token}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
-            .expect(400)
+            .expect(204)
                 .end((err, res) => {
               expect(res.body.message).to.equal('No key word supplied');
                   done();
@@ -91,7 +91,8 @@ describe('Search Controller ', () => {
             });
         });
      });
-      it('should return the email of user', (done) => {
+
+      it('should return the details of the user if a search term is keyed in', (done) => {
        const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     request(app)
     User.create({
@@ -114,7 +115,7 @@ describe('Search Controller ', () => {
             .set('Authorization', `${token}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
-            .expect(400)
+            .expect(204)
                 .end((err, res) => {
               expect(res.status).to.equal(200);
                   done();
@@ -122,6 +123,7 @@ describe('Search Controller ', () => {
             });
         });
      });
+
         it('should return user does not exist', (done) => {
        const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     request(app)
@@ -145,7 +147,7 @@ describe('Search Controller ', () => {
             .set('Authorization', `${token}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
-            .expect(400)
+            .expect(204)
                 .end((err, res) => {
               expect(res.status).to.equal(404);
               expect(res.body.message).to.equal('User does not exist')
@@ -154,6 +156,8 @@ describe('Search Controller ', () => {
             });
         });
      });
+
+
      it('should return access denied  if not admin', (done) => {
        const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
     request(app)
@@ -177,7 +181,7 @@ describe('Search Controller ', () => {
             .set('Authorization', `${token}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
-            .expect(400)
+            .expect(204)
                 .end((err, res) => {
               expect(res.body.message).to.equal('Access Denied')
                   done();
@@ -185,6 +189,7 @@ describe('Search Controller ', () => {
             });
         });
      });
+
       it('should return a no key word supplied', (done) => {
        const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     request(app)
@@ -208,7 +213,7 @@ describe('Search Controller ', () => {
             .set('Authorization', `${token}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
-            .expect(400)
+            .expect(204)
                 .end((err, res) => {
               expect(res.body.message).to.equal('No key word supplied');
                   done();
@@ -217,7 +222,8 @@ describe('Search Controller ', () => {
         });
      });
 
-     it('should return a 404 message', (done) => {
+
+     it('should return document not found', (done) => {
        const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     request(app)
     User.create({
@@ -240,7 +246,7 @@ describe('Search Controller ', () => {
             .set('Authorization', `${token}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
-            .expect(400)
+            .expect(204)
                 .end((err, res) => {
               expect(res.status).to.equal(404);
                   done();
@@ -249,39 +255,9 @@ describe('Search Controller ', () => {
         });
      });
 
-     it('should return no document found', (done) => {
-       const password = bcrypt.hashSync('amah', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'amah',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/search/documents/?q=ES9')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(400)
-                .end((err, res) => {
-              expect(res.status).to.equal(404);
-                  done();
-                });
-            });
-        });
-     });
 
- it('should return document', (done) => {
+
+ it('should return document if it exist', (done) => {
        const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     request(app)
     User.create({
@@ -318,50 +294,6 @@ describe('Search Controller ', () => {
             .expect('Content-Type', /json/)
                 .end((err, res) => {
               expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should return a connection error', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/search/documents/?q=title')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(400);
                   done();
                 });
             });
@@ -414,47 +346,4 @@ it('should return document not found', (done) => {
      });
 });
 
-it('should return document for subscribers', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/search/documents/?q=title')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-});
-});
+ });

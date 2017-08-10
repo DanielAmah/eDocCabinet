@@ -225,9 +225,6 @@
             <a href="#authentication" class="toc-h1 toc-link" data-title="Authentication">Authentication</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#registration" class="toc-h2 toc-link" data-title="Authentication">Registration</a>
-                  </li>
-                  <li>
                     <a href="#login" class="toc-h2 toc-link" data-title="Authentication">Login</a>
                   </li>
               </ul>
@@ -254,12 +251,6 @@
                     <a href="#delete-user" class="toc-h2 toc-link" data-title="Users">Delete User</a>
                   </li>
                   <li>
-                    <a href="#login-user" class="toc-h2 toc-link" data-title="Users">Login User</a>
-                  </li>
-                  <li>
-                    <a href="#logout-user" class="toc-h2 toc-link" data-title="Users">Logout User</a>
-                  </li>
-                  <li>
                     <a href="#list-user-documents" class="toc-h2 toc-link" data-title="Users">List User Documents</a>
                   </li>
                   <li>
@@ -271,7 +262,7 @@
             <a href="#documents" class="toc-h1 toc-link" data-title="Documents">Documents</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#list-users" class="toc-h2 toc-link" data-title="Documents">List Users</a>
+                    <a href="#list-documents" class="toc-h2 toc-link" data-title="Documents">List Documents</a>
                   </li>
                   <li>
                     <a href="#list-documents-by-pagination" class="toc-h2 toc-link" data-title="Documents">List Documents by Pagination</a>
@@ -317,7 +308,7 @@
       <div class="dark-box"></div>
       <div class="content">
         <h1 id='welcome-to-edoccabinet-api'>Welcome to EDocCabinet API</h1>
-<p>Welcome to the EdocCabinet API - A Document Management System API! You can use our API to access eDocCabinet API endpoints, which can get information on how to register, login, add a new document and manage your document in our database.</p>
+<p>Welcome to the EdocCabinet API - A Document Management System API! You can use our API to access eDocCabinet API endpoints, which can give you information on how to register, login, add a new document and manage your document in our database.</p>
 
 <p>We have language bindings in JavaScript! You can view code examples in the dark area to the right.
 This example API documentation page was created with <a href="https://github.com/tripit/slate">Slate</a>. Feel free to edit it and use it as a base for your own API&#39;s documentation.</p>
@@ -326,37 +317,6 @@ This example API documentation page was created with <a href="https://github.com
 <p>To get access to the document, you have to be registered:
 Register and get a token to be insert in the header</p>
 </blockquote>
-<h2 id='registration'>Registration</h2>
-<blockquote>
-<p>Request:</p>
-</blockquote>
-<pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"blessing"</span><span class="p">,</span>
-  <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"blessing@edoccabinet.com"</span><span class="p">,</span>
-  <span class="s2">"password"</span><span class="p">:</span> <span class="s2">"blessing"</span><span class="p">,</span>
-<span class="p">}</span>
-</code></pre>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"blessing"</span><span class="p">,</span>
-  <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"bosskp@edoccabinet"</span><span class="p">,</span>
-  <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Token Generated. Signup successful"</span><span class="p">,</span>
-  <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJrZW5wYWNoaSIsInJvbGVJZCI6MiwiaWF0IjoxNDk2MDAxNTE4LCJleHAiOjE0OTY2MDYzMTh9.GjmEBd_9LH9b_Gdabgdfit2HfkFBZfPshquUnAmRXV8"</span>
-<span class="p">}</span>
-</code></pre><h3 id='request'>Request</h3>
-<ul>
-<li>Endpoint: POST: <code>api/v1/users</code></li>
-<li>Body <code>(application/json)</code></li>
-</ul>
-<h3 id='response'>Response</h3>
-<ul>
-<li>Status: <code>201: Created</code></li>
-<li>Body <code>(application/json)</code></li>
-</ul>
 <h2 id='login'>Login</h2>
 <blockquote>
 <p>Request:</p>
@@ -371,29 +331,30 @@ Register and get a token to be insert in the header</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
   <span class="s2">"userId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Login Successful. Token generated. Welcome back!! ${user.username}"</span><span class="p">,</span>
+  <span class="s2">"username"</span><span class="p">:</span><span class="s2">"blessing"</span><span class="p">,</span>
+  <span class="s2">"email"</span><span class="p">:</span><span class="s2">"blessing@blessing.com"</span>
   <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJrZW5wYWNoaSIsInJvbGVJZCI6MiwiaWF0IjoxNDk2MDAxNTE4LCJleHAiOjE0OTY2MDYzMTh9.GjmEBd_9LH9b_Gdabgdfit2HfkFBZfPshquUnAmRXV8"</span>
 <span class="p">}</span>
-</code></pre><h3 id='request-2'>Request</h3>
+</code></pre><h3 id='request'>Request</h3>
 <ul>
 <li>Endpoint: POST: <code>api/v1/users/login</code></li>
 <li>Body <code>(application/json)</code></li>
 </ul>
-<h3 id='response-2'>Response</h3>
+<h3 id='response'>Response</h3>
 <ul>
-<li>Status: <code>201: Created</code></li>
+<li>Status: <code>200: OK</code></li>
 <li>Body <code>(application/json)</code></li>
 </ul>
 
 <aside class="notice">
-You must set the token at the header after login in to view protected routes
+You must set the token at the header after login to access protected routes
 </aside>
 <h1 id='users'>Users</h1><h2 id='list-users'>List Users</h2>
 <blockquote>
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"rows"</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"users"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
       <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
       <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"admin@admin.com"</span><span class="p">,</span>
@@ -422,7 +383,7 @@ You must set the token at the header after login in to view protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"rows"</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"users"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
       <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
       <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"admin@admin.com"</span><span class="p">,</span>
@@ -445,7 +406,7 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-2'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/users/page</code></li>
+<li>Endpoint: GET: <code>api/v1/users/?limit=2&amp;offset=0</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='query-parameters'>Query Parameters</h3>
@@ -490,7 +451,6 @@ You must set the token at the header after login in to view protected routes
   <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"bosskp@bleach.com"</span><span class="p">,</span>
   <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"kenpachi"</span><span class="p">,</span>
   <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"User created Successfully"</span><span class="p">,</span>
   <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJrZW5wYWNoaSIsInJvbGVJZCI6MiwiaWF0IjoxNDk2MDAxNTE4LCJleHAiOjE0OTY2MDYzMTh9.GjmEBd_9LH9b_Gdabgdfit2HfkFBZfPshquUnAmRXV8"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-3'>Request</h3>
@@ -515,7 +475,7 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-4'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>/ap1/v1/users/:id</code></li>
+<li>Endpoint: GET: <code>/ap1/v1/users/2</code></li>
 <li>Requires: Authentication
 ### Response</li>
 <li>Status: <code>200: OK</code></li>
@@ -540,7 +500,7 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-5'>Request</h3>
 <ul>
-<li>Endpoint: PUT: <code>api/v1/users/:id</code></li>
+<li>Endpoint: PUT: <code>api/v1/users/2</code></li>
 <li>Requires: Authentication</li>
 <li>Body <code>(application/json)</code></li>
 </ul>
@@ -558,51 +518,10 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-6'>Request</h3>
 <ul>
-<li>Endpoint: DELETE: <code>api/v1/users/:id</code></li>
+<li>Endpoint: DELETE: <code>api/v1/users/2</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='response-5'>Response</h3>
-<ul>
-<li>Status: <code>200: OK</code></li>
-<li>Body <code>(application/json)</code></li>
-</ul>
-<h2 id='login-user'>Login User</h2>
-<blockquote>
-<p>Request:</p>
-</blockquote>
-<pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
-  <span class="s2">"password"</span><span class="p">:</span> <span class="s2">"admin"</span>
-<span class="p">}</span>
-</code></pre>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGVJZCI6MSwiaWF0IjoxNDk2MDA5MjQxLCJleHAiOjE0OTY2MTQwNDF9.hkWYITDnqi7paQjhkqhh5Fe0yAiPf34Ffji9jKHQ_Ik"</span><span class="p">,</span>
-  <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Login Successful. Token generated. Welcome back!! ${user.username}"</span>
-<span class="p">}</span>
-</code></pre><h3 id='request-7'>Request</h3>
-<ul>
-<li>Endpoint: POST: <code>api/v1/users/login</code></li>
-</ul>
-<h3 id='response-6'>Response</h3>
-<ul>
-<li>Status: <code>200: OK</code></li>
-<li>Body <code>(application/json)</code></li>
-</ul>
-<h2 id='logout-user'>Logout User</h2>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Success, delete user token on the client"</span>
-<span class="p">}</span>
-</code></pre><h3 id='request-8'>Request</h3>
-<ul>
-<li>Endpoint: POST: <code>api/v1/users/logout</code></li>
-</ul>
-<h3 id='response-7'>Response</h3>
 <ul>
 <li>Status: <code>200: OK</code></li>
 <li>Body <code>(application/json)</code></li>
@@ -626,12 +545,12 @@ You must set the token at the header after login in to view protected routes
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="p">]</span>
-</code></pre><h3 id='request-9'>Request</h3>
+</code></pre><h3 id='request-7'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/users/:id/documents</code></li>
+<li>Endpoint: GET: <code>api/v1/users/1/documents</code></li>
 <li>Requires: Authentication</li>
 </ul>
-<h3 id='response-8'>Response</h3>
+<h3 id='response-6'>Response</h3>
 <ul>
 <li>Status: <code>200: OK</code></li>
 <li>Body <code>(application/json)</code></li>
@@ -641,7 +560,7 @@ You must set the token at the header after login in to view protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"rows"</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">[</span>
     <span class="p">{</span>
       <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
       <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"montaro"</span><span class="p">,</span>
@@ -658,9 +577,9 @@ You must set the token at the header after login in to view protected routes
     <span class="s2">"totalCount"</span><span class="p">:</span> <span class="mi">1</span>
   <span class="p">}</span>
 <span class="p">}</span>
-</code></pre><h3 id='request-10'>Request</h3>
+</code></pre><h3 id='request-8'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/search/users</code></li>
+<li>Endpoint: GET: <code>api/v1/search/users?q=montaro</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='query-parameters-2'>Query Parameters</h3>
@@ -677,17 +596,17 @@ You must set the token at the header after login in to view protected routes
 <td>Search query.</td>
 </tr>
 </tbody></table>
-<h3 id='response-9'>Response</h3>
+<h3 id='response-7'>Response</h3>
 <ul>
 <li>Status: <code>200: OK</code></li>
 <li>Body <code>(application/json)</code></li>
 </ul>
-<h1 id='documents'>Documents</h1><h2 id='list-users'>List Users</h2>
+<h1 id='documents'>Documents</h1><h2 id='list-documents'>List Documents</h2>
 <blockquote>
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"rows"</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"documents"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
       <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
       <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"ES9 - The future of JavaScript"</span><span class="p">,</span>
@@ -702,7 +621,8 @@ You must set the token at the header after login in to view protected routes
       <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
       <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span>
     <span class="p">}</span>
-  <span class="p">],</span>
+  <span class="p">]</span>
+<span class="p">}</span>
 </code></pre><h3 id='request'>Request</h3>
 <ul>
 <li>Endpoint: GET: <code>api/v1/documents</code></li>
@@ -718,18 +638,20 @@ You must set the token at the header after login in to view protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"rows"</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"documents"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
       <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"admin@admin.com"</span><span class="p">,</span>
-      <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
-      <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"ES9 - The future of JavaScript"</span><span class="p">,</span>
+      <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"ES9 features are gradually finding its way our native browsers"</span><span class="p">,</span>
+      <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
+      <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span>
     <span class="p">},</span>
-    <span class="p">{</span>
+     <span class="p">{</span>
       <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"daniel@gmail.com"</span><span class="p">,</span>
-      <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"daniel"</span><span class="p">,</span>
-      <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">2</span>
+      <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Andela- The future of technology in Africa"</span><span class="p">,</span>
+      <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Andela is building a world of technology leaders."</span><span class="p">,</span>
+      <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
+      <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span>
     <span class="p">}</span>
   <span class="p">],</span>
   <span class="s2">"metaData"</span><span class="p">:</span> <span class="p">{</span>
@@ -741,7 +663,7 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-2'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/documents/page</code></li>
+<li>Endpoint: GET: <code>api/v1/documents/?limit=2&amp;offset=0</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='query-parameters'>Query Parameters</h3>
@@ -811,7 +733,7 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-4'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>/ap1/v1/document/:documentId</code></li>
+<li>Endpoint: GET: <code>/ap1/v1/document/3</code></li>
 <li>Requires: Authentication
 ### Response</li>
 <li>Status: <code>200: OK</code></li>
@@ -837,7 +759,7 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-5'>Request</h3>
 <ul>
-<li>Endpoint: PUT: <code>api/v1/documents/:documentId</code></li>
+<li>Endpoint: PUT: <code>api/v1/documents/3</code></li>
 <li>Requires: Authentication</li>
 <li>Body <code>(application/json)</code></li>
 </ul>
@@ -855,7 +777,7 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-6'>Request</h3>
 <ul>
-<li>Endpoint: DELETE: <code>api/v1/documents/:documentsId</code></li>
+<li>Endpoint: DELETE: <code>api/v1/documents/1</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='response-5'>Response</h3>
@@ -868,7 +790,7 @@ You must set the token at the header after login in to view protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"rows"</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"result"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
          <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
          <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Another day in the beach"</span><span class="p">,</span>
@@ -880,7 +802,7 @@ You must set the token at the header after login in to view protected routes
 <span class="p">}</span>
 </code></pre><h3 id='request-7'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/search/documents</code></li>
+<li>Endpoint: GET: <code>api/v1/search/documents/?q=Another day in the beach</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='query-parameters-2'>Query Parameters</h3>
@@ -944,7 +866,7 @@ You must set the token at the header after login in to view protected routes
 <blockquote>
 <p>Response:</p>
 </blockquote>
-<pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
+<pre class="highlight javascript tab-javascript"><code>  <span class="p">{</span>
    <span class="s2">"id"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"publisher"</span><span class="p">,</span>
    <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-07-31T10:49:21.624Z"</span>
@@ -962,7 +884,7 @@ You must set the token at the header after login in to view protected routes
 <h1 id='errors'>Errors</h1>
 <aside class="notice">This error section is stored in a separate file in `includes/_errors.md`. Slate allows you to optionally separate out your docs into many files...just save them to the `includes` folder and add them to the top of your `index.md`'s frontmatter. Files are included in the order listed.</aside>
 
-<p>The Kittn API uses the following error codes:</p>
+<p>The eDocCabinet API uses the following error codes:</p>
 
 <table><thead>
 <tr>

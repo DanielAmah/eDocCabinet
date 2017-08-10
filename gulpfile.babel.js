@@ -7,7 +7,7 @@ import injectModules from 'gulp-inject-modules';
 import exit from 'gulp-exit';
 import coveralls from 'gulp-coveralls';
 
-// require('dotenv').config();
+
 
 process.env.NODE_ENV = 'test';
 
@@ -54,7 +54,7 @@ gulp.task('coverage', (cb) => {
       .pipe(injectModules())
       .pipe(jasmineNode())
       .pipe(istanbul.writeReports())
-      .pipe(istanbul.enforceThresholds({ thresholds: { global: 30 } }))
+      .pipe(istanbul.enforceThresholds({ thresholds: { global: 20 } }))
       .on('end', cb)
       .pipe(exit());
     });

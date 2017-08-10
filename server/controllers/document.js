@@ -1,100 +1,105 @@
-import Pagination from '../../utils/pagination';
+import Pagination from '../utils/pagination';
+import getRole from '../helpers/Helper';
 
-const Documents = require('../models').Documents;
-const Roles = require('../models').Roles;
+import model from '../models';
 
+
+const Documents = model.Documents;
 
 const documentController = {
    /**
    * newDocument: This allows registered users create documents
    * @function createDocument
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request to create a new document
+   * @param {object} response receive a response if the document creation is
+   *  successful or throws an error.
    * @return {object} - returns response status and json data
    */
-  newDocument(req, res) {
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.body.access === 'public'
-          || req.body.access === 'private'
-          || req.body.access === req.decoded.userRole) {
-          return Documents
+  newDocument(request, response) {
+    if (request.body.access === 'public'
+          || request.body.access === 'private'
+          || request.body.access === request.decoded.userRole) {
+      return Documents
             .create({
-              title: (req.body.title).toLowerCase(),
-              content: req.body.content,
-              owner: req.decoded.userUsername,
-              userId: req.decoded.userId,
-              access: req.body.access,
+              title: (request.body.title).toLowerCase(),
+              content: request.body.content,
+              owner: request.decoded.userUsername,
+              userId: request.decoded.userId,
+              access: request.body.access,
             })
-            .then(() => res.status(201).send({
-              message: 'Document saved successfully'
+            .then(newDocument => response.status(201).send({
+              title: newDocument.title,
+              content: newDocument.content,
+              owner: newDocument.owner,
+              message: 'Document created successfully'
             }))
-            .catch(() => res.status(400).send('Connection Error'));
-        }
-        return res.status(400).send({
-          message:
+             .catch(error => response.status(400).send({
+               error, message: 'An error occured while creating document'
+             }));
+    }
+    return response.status(403).send({
+      message:
             'Invalid document access, save document with your role'
-        });
-      });
+    });
   },
    /**
    * updateDocument: This allows registered users update saved documents
    * @function updateDocument
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request sends a request to update save documents in the document table
+   * @param {object} response receive a response if the document was updated successfully
+   * or throw an error
    * @return {object} - returns response status and json data
    */
-  updateDocument(req, res) {
-    if (!Number.isInteger(Number(req.params.documentId))) {
-      return res.status(400).json({
+  updateDocument(request, response) {
+    if (!Number.isInteger(Number(request.params.documentId))) {
+      return response.status(400).json({
         message: 'Invalid document ID'
       });
     }
     return Documents
       .find({
         where: {
-          id: req.params.documentId,
-          userId: req.decoded.userId
+          id: request.params.documentId,
+          userId: request.decoded.userId
         },
       })
       .then((document) => {
         if (!document) {
-          return res.status(404).send({
+          return response.status(404).send({
             message: 'The Document Does not Exist',
           });
         }
-        if (req.body.title) {
-          req.body.title = (req.body.title).toLowerCase();
+        if (request.body.title) {
+          request.body.title = (request.body.title).toLowerCase();
         }
         return document
-          .update(req.body, { fields: Object.keys(req.body) })
-          .then(() => res.status(200).send({
+          .update(request.body, { fields: Object.keys(request.body) })
+          .then(() => response.status(200).send({
             message: 'The Document has been successfully updated',
             documentId: document.id,
             title: document.title,
             content: document.content,
             owner: document.owner,
           }))
-          .catch(() => res.status(400).send('Connection Error'));
-      })
-      .catch(() => res.status(400).send('Connection Error'));
+           .catch(error => response.status(400).send({ error,
+             message: 'Error updating document'
+           }));
+      });
   },
     /**
    * showDocuments: This allows registered users get saved documents,
    * where role = "user's role" and public documents.
    * It gets all available documents both privates and public for admin users
    * @function listDocuments
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request that retrieve all documents
+   * @param {object} response get a response that list all documents or throws an error.
    * @return {object} - returns response status and json data
    */
-  showDocuments(req, res) {
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
-          const limit = req.query && req.query.limit ? req.query.limit : 10;
-          const offset = req.query && req.query.offset ? req.query.offset : 0;
-          return Documents
+  showDocuments(request, response) {
+    if (getRole.isAdmin(request) || getRole.isEditor(request)) {
+      const limit = request.query && request.query.limit ? request.query.limit : 10;
+      const offset = request.query && request.query.offset ? request.query.offset : 0;
+      return Documents
             .findAndCountAll({
               attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
               limit,
@@ -110,130 +115,130 @@ const documentController = {
                   pageSize,
                   pageCount,
                   currentPage,
-                }; res.status(200).send({ documents, meta });
+                };
+                const listDocuments = documents.rows;
+                response.status(200).send({ listDocuments, meta });
               })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-        }
-        return Documents
+            .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents'
+            }));
+    }
+    return Documents
           .findAll({
-            where: { access: [req.decoded.userRole, 'public'] },
+            where: { access: [request.decoded.userRole, 'public'] },
             attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
           })
-          .then(documents => res.status(200).send(documents))
-          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-      });
+          .then(documents => response.status(200).send(documents))
+          .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents'
+          }));
   },
    /**
    * findDocument: This allows registered users get documents by ID
    * where role = "user's role" and public documents,
-   * Its gets document either privates or public for admin user
+   * Its gets document either private or public for admin user
    * @function findDocument
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request to find a document in the document table
+   * @param {object} response get a response if the document is retrieve or throws an error
    * @return {object} - returns response status and json data
    */
-  findDocument(req, res) {
-    if (!Number.isInteger(Number(req.params.documentId))) {
-      return res.json({
+  findDocument(request, response) {
+    if (!Number.isInteger(Number(request.params.documentId))) {
+      return response.json({
         message: 'Invalid document ID'
       });
     }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
-          return Documents
+    if (getRole.isAdmin(request) || getRole.isEditor(request)) {
+      return Documents
             .find({
-              where: { id: req.params.documentId },
+              where: { id: request.params.documentId },
               attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
             })
             .then((document) => {
               if (!document) {
-                return res.status(404).send({
+                return response.status(404).send({
                   message: 'Document Not Found',
                 });
               }
-              return res.status(200).send(document);
+              return response.status(200).send(document);
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-        }
-        return Documents
+            .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents'
+            }));
+    }
+    return Documents
           .find({
             where: {
-              id: req.params.documentId,
-              access: [req.decoded.userRole, 'public']
+              id: request.params.documentId,
+              access: [request.decoded.userRole, 'public']
             },
             attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
           })
           .then((document) => {
             if (!document) {
-              return res.status(404).send({
+              return response.status(404).send({
                 message: 'Document Not Found',
               });
             }
-            return res.status(200).send(document);
+            return response.status(200).send(document);
           })
-          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-      });
+          .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents'
+          }));
   },
+
    /**
    * deleteDocument:
    * This allows registered users to delete thier documents by ID
    * Admin users can also delete user's documents with by just ID
    * @function deleteDocument
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request  send a request to delete a document from the database
+   * @param {object} response get a response if deletion is successful or it throws an error
    * @return {object} - returns response status and json data
    */
-  deleteDocument(req, res) {
-    if (!Number.isInteger(Number(req.params.documentId))) {
-      return res.status(400).send({
+  deleteDocument(request, response) {
+    if (!Number.isInteger(Number(request.params.documentId))) {
+      return response.status(400).send({
         message: 'Invalid document ID'
       });
     }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1 || req.decoded.userRole === 2) {
-          return Documents
+    if (getRole.isAdmin(request) || getRole.isEditor(request)) {
+      return Documents
             .find({
               where: {
-                id: req.params.documentId
+                id: request.params.documentId
               }
             })
             .then((document) => {
               if (!document) {
-                return res.status(404).send({
+                return response.status(404).send({
                   message: 'Document Not Found',
                 });
               }
               return document
                 .destroy()
-                .then(() => res.status(200)
+                .then(() => response.status(200)
                   .send({ message: 'The Document has been deleted successfully.' }))
-                .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-            })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-        }
-        return Documents
+                 .catch(error => response.status(400).send({ error, message: 'Error occurred while deleting documents'
+                 }));
+            });
+    }
+    return Documents
           .find({
             where: {
-              id: req.params.documentId,
-              userId: req.decoded.userId
+              id: request.params.documentId,
+              userId: request.decoded.userId
             }
           })
           .then((document) => {
             if (!document) {
-              return res.status(400).send({
+              return response.status(400).send({
                 message: 'Document Not Found',
               });
             }
             return document
               .destroy()
-              .then(() => res.status(200)
+              .then(() => response.status(200)
                 .send({ message: 'The Document has been deleted successfully.' }))
-              .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-          })
-          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-      });
+               .catch(error => response.status(400).send({ error, message: 'Error occurred while deleting documents'
+               }));
+          });
   }
 };
 export default documentController;

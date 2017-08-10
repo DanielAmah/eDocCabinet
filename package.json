@@ -4,14 +4,13 @@
   "description": "A Document Management System",
   "main": "server/server.js",
   "scripts": {
-    "start": "nodemon build/server.js",
+    "start": "npm run build && nodemon build/server.js",
     "build": "gulp dev",
     "postinstall": "node node_modules/gulp/bin/gulp dev",
     "dev": "npm run build && gulp",
     "cleardb": "NODE_ENV=test sequelize db:migrate:undo:all",
-     "pretest": "npm run cleardb && NODE_ENV=test sequelize db:migrate && NODE_ENV=test sequelize db:seed:all",
+    "pretest": "npm run cleardb && NODE_ENV=test sequelize db:migrate && NODE_ENV=test sequelize db:seed:all",
     "test": "NODE_ENV=test npm run build && gulp coverage && gulp coveralls && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
-    "devsetup": "export DEV_URL=postgres://coceqcsh:DjcwE_MwGPWm7trTSTKn1f5u7Xrc9iNN@stampy.db.elephantsql.com:5432/coceqcsh",
     "migrate": " sequelize db:migrate",
     "seed": "sequelize db:seed:all"
   },
@@ -69,7 +68,8 @@
     "pg-hstore": "^2.3.2",
     "sequelize": "^4.4.2",
     "sequelize-cli": "latest",
-    "supertest": "^3.0.0"
+    "supertest": "^3.0.0",
+    "validator": "^8.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",

@@ -1,49 +1,46 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import getUserToken from '../helpers/jwt';
 
 require('dotenv').config();
-
 
 const User = require('../models/').Users;
   /**
    * login: Enables users to login to their accounts
    * @function login
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request to login a registered user
+   * @param {object} response receive a response if login is successful
+   * throws an error.
    * @return {object}  returns response status and json data
    */
 const authController = {
-  login(req, res) {
+  login(request, response) {
     return User
       .findOne({
         where: {
-          username: req.body.username
+          username: request.body.username
         }
       }).then((user) => {
         if (!user) {
-          res.status(400).send({ message: 'User not found' });
+          response.status(404).send({ message: 'User not found' });
         }
-        const passkey = bcrypt.compareSync(req.body.password, user.password);
+        const passkey = bcrypt.compareSync(request.body.password, user.password);
         if (passkey) {
-          const token = jwt.sign({
-            userId: user.id,
-            userRole: user.roleId,
-            userUsername: user.username,
-            userEmail: user.email,
-          }, process.env.SECRET, {
-            expiresIn: '2h'
-          });
-          res.status(200).send({
+          const token = getUserToken(user);
+          const oldUser = {
             success: true,
-            message: `Login Successful. Token generated. Welcome back!! ${user.username}`,
             userId: user.id,
-            token,
-          });
+            userEmail: user.email,
+            
+          };
+          response.status(200).send({ oldUser, token });
         } else {
-          res.status(400).send({ message: 'Password is incorrect' });
+          response.status(401).send({ message: 'Password is incorrect' });
         }
       })
-      .catch(error => res.send(error));
+        .catch(error => response.status(400).send({
+          error,
+          message: 'Error occurred while authenticating user'
+        }));
   }
 };
 

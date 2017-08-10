@@ -59,7 +59,7 @@ describe('Auth Controller ', () => {
       }
     });
   });
-     it('responds with a 200 to a valid login request', (done) => {
+   it('should give a status code of 200 for a successful login', (done) => {
     const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     User.create({
       email: 'admin@admin.com',
@@ -76,12 +76,12 @@ describe('Auth Controller ', () => {
       .expect(200)
       .end((err, res) => {
           console.log(res.body);
-        expect(res.body.message).to.equals('Login Successful. Token generated. Welcome back!! admin');
+        expect(res.status).to.equals(200);
         done();
       });
     });
   });
-       it('responds with message - password incorrect', (done) => {
+    it('should display password incorrect if wrong password was used', (done) => {
     const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
     User.create({
       email: 'admin@admin.com',
@@ -103,7 +103,8 @@ describe('Auth Controller ', () => {
       });
     });
   });
-        it('responds with a 200 to a valid login request', (done) => {
+      
+    it('should have a token for the user that are logged in', (done) => {
     const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
     User.create({
       email: 'daniel@daniel.com',
@@ -114,15 +115,31 @@ describe('Auth Controller ', () => {
       request(app)
       .post('/api/v1/users/login')
       .send({
-        username: 'paul',
-        password: '',
+        username: 'daniel',
+        password: 'jack',
       })
       .expect(200)
       .end((err, res) => {
           console.log(res.body);
-        expect(res.body.message).to.equals('User not found');
+        expect(res.body.token).to.exist;
         done();
       });
     });
   });
-})
+
+ it('should return User not found if no user in the database', (done) => {
+    const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
+      request(app)
+      .post('/api/v1/users/login')
+      .send({
+        username: 'daniel',
+        password: 'jack',
+      })
+      .expect(200)
+      .end((err, res) => {
+          console.log(res.body);
+        expect(res.body.message).to.equal('User not found');
+        done();
+      });
+  });
+});

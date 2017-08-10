@@ -1,78 +1,85 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import Pagination from '../../utils/pagination';
+import Pagination from '../utils/pagination';
+import model from '../models/';
+import getUserToken from '../helpers/jwt';
+import getRole from '../helpers/Helper';
 
 require('dotenv').config();
 
+const User = model.Users;
+const Documents = model.Documents;
 
-const User = require('../models/').Users;
-const Documents = require('../models').Documents;
-const Roles = require('../models').Roles;
+
   /**
    * signUp: To creating accounts for users
    * @function signUp
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request to encrypt password with bcrypt
+   * to create a new user
+   * @param {object} response get response if signup is successful.
    * @return {object}  returns response status and json data
    */
 const userController = {
-  signup(req, res) {
-    const password = bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10));
+  signup(request, response) {
+    const password = bcrypt.hashSync(request.body.password, bcrypt.genSaltSync(10));
     return User
+     .findOne({
+       where: {
+         email: request.body.email
+       }
+     })
+      .then((checkuser) => {
+        if (checkuser) {
+          return response.status(409).send({ message: 'User Already Exists' });
+        }
+        User
       .create({
-        email: req.body.email,
-        username: req.body.username,
+        email: request.body.email,
+        username: request.body.username,
         password,
-        roleId: req.body.roleId,
+        roleId: request.body.roleId,
       })
       .then((user) => {
-        const token = jwt.sign({
-          userId: user.id,
-          userRole: user.roleId,
-          userUsername: user.username,
-          userEmail: user.email,
-        }, process.env.SECRET, {
-          expiresIn: '24h'
-        });
-        res.status(201).send({
+        const token = getUserToken(user);
+        const newUser = {
           success: true,
-          message: 'Token Generated. Signup successful',
           userId: user.id,
-          token,
-        });
+          userEmail: user.email,
+          userUsername: user.username
+        };
+        response.status(201).send({ newUser, token });
       })
-      .catch(error => res.status(400).send(error));
+       .catch(error => response.status(400).send({
+         error, message: `Error creating ${request.body.name}` }));
+      });
   },
     /**
    * listUsers: Enables users to get list of registered users
    * query parameters are offset and limit
    * default offset is 0 and default limit is 10
    * @function listUsers
-   * @param {object} req request
-   * @param {object} res response
-   * @return {object}  returns response status and json data
+   * @param {object} request send a request to list all registered users in the database
+   * @param {object} response get a response if retrieving users is successful or not
+   * @return {object}  returns response status and json data of all registered users
    */
    /**
    * getUserPage: Enables users to get list of registered users by page
    * @function getUserPage
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request request to list users by page
+   * @param {object} response response
    * @return {object}  returns response status and json data
    */
-  listUsers(req, res) {
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1) {
-          const limit = req.query && req.query.limit ? req.query.limit : 10;
-          const offset = req.query && req.query.offset ? req.query.offset : 0;
-          return User
+  listUsers(request, response) {
+    if (getRole.isAdmin(request)) {
+      const limit = request.query && request.query.limit ? request.query.limit : 10;
+      const offset = request.query && request.query.offset ? request.query.offset : 0;
+      return User
             .findAndCountAll({
               attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
               limit,
               offset,
             })
-            .then((user) => {
-              const totalUserCount = user.count;
+            .then((users) => {
+              const totalUserCount = users.count;
               const pageSize = Pagination.getPageSize(limit);
               const pageCount = Pagination.getPageCount(totalUserCount, limit);
               const currentPage = Pagination.getCurrentPage(limit, offset);
@@ -82,307 +89,298 @@ const userController = {
                 pageCount,
                 currentPage,
               };
-              res.status(200).send({ user, meta });
+              const userlist = users.rows;
+              response.status(200).send({ userlist, meta });
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
-        } else if (req.decoded.userRole === 2) {
-          return res.status(400).send({
-            message: 'As the Editor please contact the Administrator to grant you temporary access'
-          });
-        }
-        return res.status(400).send({
-          message: 'Access Denied. You can not see register subscribers'
-        });
-      });
+             .catch(error => response.status(400).send({
+               error, message: 'Error retrieving users' }));
+    }
+    return response.status(401).send({
+      message: 'Access Denied. You can not see register subscribers'
+    });
   },
      /**
    * listUsersAndDocuments: Enables users to get list of registered users with there documents
    * @function listUsersAndDocuments
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request to retrieve list of users and documents
+   * @param {object} response get a response of all users and documents or throws an error.
    * @return {object}  returns response status and json data
    */
-  listUsersAndDocuments(req, res) {
-    Roles.findById(req.decoded.userRole)
-    .then(() => {
-      if (req.decoded.userRole === 1) {
-        return User
+  listUsersAndDocuments(request, response) {
+    if (getRole.isAdmin(request)) {
+      return User
         .findAll({
+          attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
           include: [{
             model: Documents,
             as: 'myDocuments'
           }]
         })
-        .then(user => res.status(200).send(user))
-        .catch(() => res.status(400).send({ message: 'Connection Error' }));
-      } else if (req.decoded.userRole === 2) {
-        return res.status(400).send({
-          message: 'Access Denied. You are the Editor. Contact the Administrator'
-        });
-      }
-      return res.status(400).send({
-        message: 'Access Denied. You can not see registered subscribers'
-      });
+        .then(users => response.status(200).send(
+          users))
+       .catch(error => response.status(400).send({
+         error, message: 'Error retrieving users' }));
+    }
+    return response.status(401).send({
+      message: 'Access Denied. You can not see registered subscribers'
     });
   },
     /**
    * updateUser: Enables users to update their information
    *  where email must be unique
    * @function updateUser
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request to update users
+   * @param {object} response receives response if update is successful or it threw an error
    * @return {object}  returns response status and json data
    */
-  updateUsers(req, res) {
-    if (!Number.isInteger(Number(req.params.userId))) {
-      return res.status(400).send({
+  updateUsers(request, response) {
+    if (!Number.isInteger(Number(request.params.userId))) {
+      return response.status(400).send({
         message: 'Invalid User ID'
       });
     }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1) {
-          if (req.body.email) {
-            return User.find({
-              where: {
-                email: req.body.email
-              }
-            })
-              .then((response) => {
-                if (response) {
-                  return res.status(400).send({
-                    message: 'Email Already Exist'
-                  });
-                }
-                if (req.body.username) {
-                  req.body.username = (req.body.username).toLowerCase();
+    if (getRole.isAdmin(request)) {
+      User.find({
+        where: {
+          email: request.body.email
+        }
+      })
+              .then(() => {
+                if (request.body.username) {
+                  request.body.username = (request.body.username).toLowerCase();
                 }
                 return User
-                  .findById(req.params.userId)
+                  .findById(request.params.userId)
                   .then((user) => {
                     if (!user) {
-                      return res.status(400).send({
+                      return response.status(404).send({
                         message: 'User Not Found',
                       });
                     }
+                    const password = request.body.password ?
+              bcrypt.hashSync(request.body.password,
+                bcrypt.genSaltSync(10)) : null;
                     return user
-                      .update(req.body, { fields: Object.keys(req.body) })
-                      .then(() => res.status(200).send({
-                        message: 'Subscriber Account  Updated',
+                      .update({
+                        username: request.body.username || user.username,
+                        email: request.body.email || user.email,
+                        password: password || user.password,
+                        roleId: request.body.roleId || user.roleId
+                      })
+                      .then(() => response.status(200).send({
                         email: user.email,
                         username: user.username,
                         role: user.roleId
-                      }))
-                      .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
+                      }));
                   })
-                  .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
+                  .catch(error => response.status(404).send({ error, message: 'ID not found in the database' }));
               })
-              .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-          }
-          return User
-            .findById(req.params.userId)
+              .catch(error => response.status(400).send({ error, message: 'Error updating user' }));
+
+      return User
+            .findById(request.params.userId)
             .then((user) => {
               if (!user) {
-                return res.status(404).send({
+                return response.status(404).send({
                   message: 'User Not Found',
                 });
               }
-              if (req.body.username) {
-                req.body.username = (req.body.username).toLowerCase();
+              if (request.body.username) {
+                request.body.username = (request.body.username).toLowerCase();
               }
+              const password = request.body.password ?
+              bcrypt.hashSync(request.body.password,
+                bcrypt.genSaltSync(10)) : null;
               return user
-                .update(req.body, { fields: Object.keys(req.body) })
-                .then(() => res.status(200).send({
-                  message: 'Account Updated',
+                .update({
+                  username: request.body.username || user.username,
+                  email: request.body.email || user.email,
+                  password: password || user.password,
+                  roleId: request.body.roleId || user.roleId
+                })
+                .then(() => response.status(200).send({
                   email: user.email,
                   username: user.username,
                   role: user.roleId
-                }))
-                .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
+                }));
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
+            .catch(error => response.status(400).send({ error, message: 'Error updating user' }));
+    }
+    if (request.body.email) {
+      User.find({
+        where: {
+          email: request.body.email
         }
-        if (req.body.email) {
-          return User.find({
-            where: {
-              email: req.body.email
-            }
-          })
-            .then((response) => {
-              if (response) {
-                return res.status(400).send({
-                  message: 'Email Already Exist'
-                });
+      })
+            .then(() => {
+              if (request.body.username) {
+                request.body.username = (request.body.username).toLowerCase();
               }
-              if (req.body.username) {
-                req.body.username = (req.body.username).toLowerCase();
-              }
-              if (req.body.role) {
-                req.body.roleId = req.decoded.userRole;
+              if (request.body.role) {
+                request.body.roleId = request.decoded.userRole;
               }
               return User
-                .findById(req.params.userId)
+                .findById(request.params.userId)
                 .then((user) => {
                   if (!user) {
-                    return res.status(400).send({
+                    return response.status(404).send({
                       message: 'User Not Found',
                     });
                   }
+                  const password = request.body.password ?
+              bcrypt.hashSync(request.body.password,
+                bcrypt.genSaltSync(10)) : null;
                   return user
-                    .update(req.body, { fields: Object.keys(req.body) })
-                    .then(() => res.status(200).send({
-                      message: 'Subscriber Account  Updated',
+                    .update({
+                      username: request.body.username || user.username,
+                      email: request.body.email || user.email,
+                      password: password || user.password,
+                      roleId: request.body.roleId || user.roleId
+                    })
+                    .then(() => response.status(200).send({
                       email: user.email,
                       username: user.username,
                       role: user.roleId
-                    }))
-                    .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
+                    }));
                 })
-                .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
+                .catch(error => response.status(404).send({ error, message: 'ID not found in the database' }));
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-        }
-        return User
-          .findById(req.params.userId)
+             .catch(error => response.status(400).send({ error, message: 'Error updating user' }));
+    }
+    return User
+          .findById(request.params.userId)
           .then((user) => {
             if (!user) {
-              return res.status(404).send({
+              return response.status(404).send({
                 message: 'User Not Found',
               });
             }
-            if (req.body.username) {
-              req.body.username = (req.body.username).toLowerCase();
+            if (request.body.username) {
+              request.body.username = (request.body.username).toLowerCase();
             }
-            if (req.body.role) {
-              req.body.roleId = req.decoded.userRole;
+            if (request.body.role) {
+              request.body.roleId = request.decoded.userRole;
             }
+            const password = request.body.password ?
+              bcrypt.hashSync(request.body.password,
+                bcrypt.genSaltSync(10)) : null;
             return user
-              .update(req.body, { fields: Object.keys(req.body) })
-              .then(() => res.status(200).send({
-                message: 'Account Updated',
+              .update({
+                username: request.body.username || user.username,
+                email: request.body.email || user.email,
+                password: password || user.password,
+                roleId: request.body.roleId || user.roleId
+              })
+              .then(() => response.status(200).send({
                 email: user.email,
                 username: user.username,
                 role: user.roleId
-              }))
-              .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
+              }));
           })
-          .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-      });
+          .catch(error => response.status(400).send({ error, message: 'Error updating user' }));
   },
   /**
    * findUsers: Enables users to find other registered users
    * @function findUser
-   * @param {object} req request
-   * @param {object} res response
-   * @return {object}  returns response status and json data
+   * @param {object} request send request to find a registered user from the database.
+   * @param {object} response get a response of a user from the database
+   * @return {object}  returns response status and json data of the user retrieved
    */
-  findUsers(req, res) {
-    if (!Number.isInteger(Number(req.params.userId))) {
-      return res.status(400).send({
+  findUsers(request, response) {
+    if (!Number.isInteger(Number(request.params.userId))) {
+      return response.status(400).send({
         message: 'Invalid User ID'
       });
     }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userRole === 1) {
-          return User
+    if (getRole.isAdmin(request)) {
+      return User
             .find({
               where: {
-                id: req.params.userId,
+                id: request.params.userId,
               },
               attributes: ['id', 'email', 'username', 'createdAt'],
             })
             .then((user) => {
               if (!user) {
-                return res.status(404).send({
+                return response.status(404).send({
                   message: 'User not found'
                 });
               }
-              return res.status(200).send(user);
+              return response.status(200).send(user);
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error' }));
-        }
-        return res.status(400).send({
-          message: 'Access Denied'
-        });
-      });
+           .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving user' }));
+    }
+    return response.status(401).send({
+      message: 'Access Denied'
+    });
   },
     /**
    * deleteUsers: Enables users and admin users to delete account by ID
    * @function deleteUser
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request sends a request to delete users from the user's database
+   * @param {object} response get a response of delete successful or throw an error
    * @return {object}  returns response status and json data
    */
-  deleteUsers(req, res) {
-    if (!Number.isInteger(Number(req.params.userId))) {
-      return res.status(400).send({
+  deleteUsers(request, response) {
+    if (!Number.isInteger(Number(request.params.userId))) {
+      return response.status(400).send({
         message: 'Invalid User ID'
       });
     }
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userId === Number(req.params.userId)
-    || req.decoded.userRole === 1) {
-          return User
-            .findById(req.params.userId)
+    if (request.decoded.userId === Number(request.params.userId)
+    || getRole.isAdmin(request)) {
+      return User
+            .findById(request.params.userId)
             .then((user) => {
               if (!user) {
-                return res.status(404).send({
+                return response.status(404).send({
                   message: 'User Not Found',
                 });
               }
               return user
                 .destroy()
-                .then(() => res.status(200)
-                  .send({ message: 'User deleted successfully.' }))
-                .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
+                .then(() => response.status(200)
+                  .send({ message: 'User deleted successfully.' }));
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-        }
-        return res.status(400).send({
-          message: 'Access Denied',
-        });
-      });
+            .catch(error => response.status(400).send({ error, message: 'Error deleting user' }));
+    }
+    return response.status(401).send({ message: 'Unauthorized access' });
   },
    /**
    * findUserDocument: Enables users get documents that belongs to the user
    * @function findUserDocument
-   * @param {object} req request
-   * @param {object} res response
+   * @param {object} request send a request to retrieve user document
+   * @param {object} response get a response of all users and documents
    * @return {object}  returns response status and json data
    */
-  findUserDocument(req, res) {
-    Roles.findById(req.decoded.userRole)
-      .then(() => {
-        if (req.decoded.userId === Number(req.params.userId)
-    || req.decoded.userRole === 1) {
-          if (!Number.isInteger(Number(req.params.userId))) {
-            return res.status(400).send({
-              message: 'Invalid User ID'
-            });
-          }
-          return Documents
+  findUserDocument(request, response) {
+    if (request.decoded.userId === Number(request.params.userId)
+    || getRole.isAdmin(request)) {
+      if (!Number.isInteger(Number(request.params.userId))) {
+        return response.status(400).send({
+          message: 'Invalid User ID'
+        });
+      }
+      return Documents
             .findAll({
               where: {
-                userId: req.params.userId,
+                userId: request.params.userId,
               },
               attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
             })
             .then((documents) => {
               if (documents.length === 0) {
-                return res.status(404).send({
+                return response.status(404).send({
                   message: 'No document Found',
                 });
               }
-              return res.status(200).send(documents);
+              return response.status(200).send(documents);
             })
-            .catch(() => res.status(400).send({ message: 'Connection Error. May be Internet challenges' }));
-        }
-        return res.status(400).send({
-          message: 'Access Denied'
-        });
-      });
+             .catch(error => response.status(400).send({
+               error, message: 'Error occurred while retrieving user document'
+             }));
+    }
+    return response.status(401).send({ message: 'Unauthorized access' });
   },
 };
 
