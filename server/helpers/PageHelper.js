@@ -11,7 +11,7 @@ const PageHelper = {
   },
   GetPageMeta(request, users, GetLimit, GetOffset) {
     const totalCount = users.count;
-    const pageSize = PaginationUtil.getPageSize(GetLimit(request));
+    const pageSize = Number(PaginationUtil.getPageSize(GetLimit(request)));
     const pageCount = PaginationUtil.getPageCount(totalCount, GetLimit(request));
     const page = PaginationUtil.getCurrentPage(GetLimit(request), GetOffset(request));
     const meta = {
@@ -24,7 +24,7 @@ const PageHelper = {
   },
   GetDocumentPageMeta(request, documents, GetLimit, GetOffset) {
     const totalCount = documents.count;
-    const pageSize = PaginationUtil.getPageSize(GetLimit(request));
+    const pageSize = Number(PaginationUtil.getPageSize(GetLimit(request)));
     const pageCount = PaginationUtil.getPageCount(totalCount, GetLimit(request));
     const page = PaginationUtil.getCurrentPage(GetLimit(request), GetOffset(request));
     const meta = {
