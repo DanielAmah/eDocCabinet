@@ -8,10 +8,10 @@
     "port": 5432
   },
   "test": {
-   "username": "testusername",
-    "password": "testpassword",
-    "database": "testdatabase",
-    "host": "testhost",
+    "username": "coceqcsh",
+    "password": "DjcwE_MwGPWm7trTSTKn1f5u7Xrc9iNN",
+    "database": "coceqcsh",
+    "host": "stampy.db.elephantsql.com",
     "dialect": "postgres",
     "port": 5432
   },
