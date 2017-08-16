@@ -22,6 +22,8 @@
 .highlight .gp {
   color: #555555;
 }
+.highlight .gs {
+}
 .highlight .gu {
   color: #aaaaaa;
 }
@@ -333,7 +335,7 @@ Register and get a token to be insert in the header</p>
         <span class="s2">"userId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"userEmail"</span><span class="p">:</span> <span class="s2">"blessing@blessing.com"</span>
     <span class="p">},</span>
-    <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJSb2xlIjoxLCJ1c2VyVXNlcm5hbWUiOiJhZG1pbiIsInVzZXJFbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsImlhdCI6MTUwMjQ2NTY1NiwiZXhwIjoxNTAyNzI0ODU2fQ.uUqKVtOIAe9tx3vajVSZr8kiiWwjWzBFxR3tPiGMx3U"</span>
+    <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJSb2xlIjoxLCJ1c2VyVXNlcm5hbWUiOiJhZG1pbiIsInVzZXJFbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsImlhdCI6MTUwMjkyMDUwMiwiZXhwIjoxNTAzMTc5NzAyfQ.21ANE_AkEQeO3JzE5dfW2vzI0trqrP8lkbQeXiKHeh0"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request'>Request</h3>
 <ul>
@@ -392,10 +394,10 @@ You must set the token at the header after login to access protected routes
         <span class="p">}</span>
     <span class="p">],</span>
     <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"totalUserCount"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s2">"page"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">"currentPage"</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s2">"totalCount"</span><span class="p">:</span> <span class="mi">5</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre><h3 id='request'>Request</h3>
@@ -415,32 +417,39 @@ You must set the token at the header after login to access protected routes
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
     <span class="s2">"userlist"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
-            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"blessing@blessing.com"</span><span class="p">,</span>
-            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"blessing"</span><span class="p">,</span>
-            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:13:11.664Z"</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"peter@peter.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"peter"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-14T17:55:17.538Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"afrocode@afrocode.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"afrocode"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-14T18:01:56.950Z"</span>
         <span class="p">},</span>
         <span class="p">{</span>
             <span class="s2">"id"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jamesdoe@email.com"</span><span class="p">,</span>
-            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jamesdoe"</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"daniel@gmail.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"rtgrgrht"</span><span class="p">,</span>
             <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T14:54:25.253Z"</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-14T17:07:15.693Z"</span>
         <span class="p">},</span>
         <span class="p">{</span>
-            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
-            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jan@email.com"</span><span class="p">,</span>
-            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"dan@dan.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"favour"</span><span class="p">,</span>
             <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:53:21.524Z"</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-14T18:17:50.155Z"</span>
         <span class="p">}</span>
     <span class="p">],</span>
     <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"totalUserCount"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="s2">"3"</span><span class="p">,</span>
+        <span class="s2">"page"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
         <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-        <span class="s2">"currentPage"</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="s2">"totalCount"</span><span class="p">:</span> <span class="mi">8</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-2'>Request</h3>
@@ -528,6 +537,8 @@ You must set the token at the header after login to access protected routes
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
   <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jamila@andela.com"</span><span class="p">,</span>
+  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jamila"</span><span class="p">,</span>
+  <span class="s2">"password"</span><span class="p">:</span> <span class="s2">"jamila"</span>
 <span class="p">}</span>
 </code></pre>
 <blockquote>
@@ -675,10 +686,10 @@ You must set the token at the header after login to access protected routes
         <span class="p">}</span>
     <span class="p">],</span>
     <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"totalUserCount"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s2">"page"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">"currentPage"</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s2">"totalCount"</span><span class="p">:</span> <span class="mi">5</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre><h3 id='request'>Request</h3>
@@ -723,15 +734,15 @@ You must set the token at the header after login to access protected routes
         <span class="p">}</span>
     <span class="p">],</span>
     <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"totalUserCount"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="s2">"5"</span><span class="p">,</span>
-        <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s2">"currentPage"</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="s2">"page"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s2">"totalCount"</span><span class="p">:</span> <span class="mi">5</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-2'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/documents?limit=5&amp;offset=2</code></li>
+<li>Endpoint: GET: <code>api/v1/documents?limit=3&amp;offset=2</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='query-parameters'>Query Parameters</h3>
@@ -812,7 +823,9 @@ You must set the token at the header after login to access protected routes
 <p>Request:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Another day in the beach"</span><span class="p">,</span>
+   <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"another day at the beach"</span><span class="p">,</span>
+   <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"private"</span><span class="p">,</span>
+   <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever yet again"</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre>
 <blockquote>
@@ -822,7 +835,7 @@ You must set the token at the header after login to access protected routes
     <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"The Document has been successfully updated"</span><span class="p">,</span>
     <span class="s2">"documentId"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
     <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"another day in the beach"</span><span class="p">,</span>
-    <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever"</span><span class="p">,</span>
+    <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever yet again"</span><span class="p">,</span>
     <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-5'>Request</h3>
@@ -974,8 +987,8 @@ You must set the token at the header after login to access protected routes
 <td>Not Found.</td>
 </tr>
 <tr>
-<td>405</td>
-<td>Method Not Allowed.</td>
+<td>409</td>
+<td>Conflict.</td>
 </tr>
 <tr>
 <td>500</td>
