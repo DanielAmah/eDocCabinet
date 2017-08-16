@@ -1,27 +1,38 @@
-import chai, { expect } from 'chai';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import supertest from 'supertest';
+import { expect } from 'chai';
+import { TestHelper } from '../TestHelper';
+import models from '../../server/models';
+import JsonWebTokenHelper from '../../server/helpers/JsonWebTokenHelper';
 
-const User = require('../../server/models').Users;
-const Document = require('../../server/models').Documents;
-const Role = require('../../server/models').Roles;
-const request = require('supertest');
-const assert = require('chai').assert;
-require('babel-register');
+
 const app = require('../../build/server');
 
-let token;
+const request = supertest.agent(app);
 
-describe('Document Controller ', () => {
+
+const adminUser = TestHelper.specUser1;
+const subscriberUser = TestHelper.specUser3;
+const document1 = TestHelper.specDocument1;
+const document2 = TestHelper.specDocument2;
+const updateDocument = TestHelper.specUpdateDocument;
+const BadAccessDocument = TestHelper.specBadAccessDocument;
+const noTitleDocument = TestHelper.noTitleDocument;
+const noContentDocument = TestHelper.noContentDocument;
+
+const adminToken = JsonWebTokenHelper(adminUser);
+const subscriberToken = JsonWebTokenHelper(subscriberUser);
+const unauthorizedToken = '4nf30f';
+
+describe('Authentication Controller', () => {
   beforeEach((done) => {
-    Role.destroy({
+    models.Roles.destroy({
       where: {},
       truncate: true,
       cascade: true,
       restartIdentity: true
-    }).then((error) => {
-      if (!error) {
-        Document
+    }).then((err) => {
+      if (!err) {
+        models.Documents
           .destroy({
             where: {},
             truncate: true,
@@ -30,26 +41,18 @@ describe('Document Controller ', () => {
           })
           .then((err) => {
             if (!err) {
-              User.destroy({
+              models.Users.destroy({
                 where: {},
                 truncate: true,
                 cascade: true,
                 restartIdentity: true
               }).then((err) => {
                 if (!err) {
-                  Role.bulkCreate([
-                    {
-                      title: 'administrator'
-                    },
-                    {
-                      title: 'editor'
-                    },
-                    {
-                      title: 'subcriber'
-                    }
-                  ]).then((err) => {
-                    if (!err) {
-                    }
+                  models.Roles.bulkCreate([
+                    TestHelper.adminRole,
+                    TestHelper.editorRole,
+                    TestHelper.subscriberRole
+                  ]).then(() => {
                     done();
                   });
                 }
@@ -59,868 +62,280 @@ describe('Document Controller ', () => {
       }
     });
   });
-
-  // Test to create a new document
-
-  it('should create a new document', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .post('/api/v1/documents/')
-            .send({
-              title: 'ES9',
-              content: 'the future of Javascript',
-              access: 'public'
-            })
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(400)
-                .end((err, res) => {
-              expect(res.status).to.equal(201);
-                  done();
-                });
-            });
+  describe('Create Documents Endpoint', () => {
+    beforeEach((done) => {
+      models.Users.create(adminUser).then(() => {
+        done();
+      });
+      done();
+    });
+    it('should not create a document with wrong access', (done) => {
+      request.post('/api/v1/documents/')
+        .send(BadAccessDocument)
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(403);
+          expect(response.body.message).to.equal('Invalid document access, save document with your role');
+          done();
         });
-     });
-
-     it('should not create a new document if no role is specified', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .post('/api/v1/documents/')
-            .send({
-              title: 'ES9',
-              content: 'the future of Javascript',
-            })
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(400)
-                .end((err, res) => {
-              expect(res.status).to.equal(403);
-                  done();
-                });
-            });
+    });
+    it('should not create a document with no title', (done) => {
+      request.post('/api/v1/documents/')
+        .send(noTitleDocument)
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body[0].msg).to.equal('Enter a title for the document');
+          done();
         });
-     });
-
-     it('should not save new document with wrong access', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .post('/api/v1/documents/')
-            .send({
-              title: 'ES9',
-              content: 'the future of Javascript',
-              access: 'Finance'
-            })
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(400)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('Invalid document access, save document with your role');
-                  done();
-                });
-            });
+    });
+    it('should not create a document with no content', (done) => {
+      request.post('/api/v1/documents/')
+        .send(noContentDocument)
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body[0].msg).to.equal('Enter a content for the document');
+          done();
         });
-     });
-      it('should not save a document with invalid role', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .post('/api/v1/documents/')
-            .send({
-              title: 'ES9',
-              content: 'the future of Javascript',
-              access: 'Finance'
-            })
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(400)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('Invalid document access, save document with your role');
-                  done();
-                });
-            });
+    });
+    it('should successfully create a new document', (done) => {
+      request.post('/api/v1/documents/')
+        .send(document2)
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(201);
+          expect(response.body.message).to.equal(
+            'Document created successfully');
+          done();
         });
-     });
-
-// test to retrieve documents
-
-it('should retrieve a document successfully', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
+    });
+  });
+  describe('Get Documents Endpoint', () => {
+    beforeEach((done) => {
+      models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+        done();
+      });
+    });
+    it('should successfully get all documents for an admin', (done) => {
+      models.Documents.create(document1);
+      request.get('/api/v1/documents/')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.listDocuments[0].title).to.equal('My first document');
+          expect(response.body.listDocuments[0].content).to.equal('The best content');
+          done();
+        });
+    });
+    it('should successfully get all documents a user has access to', (done) => {
+      models.Documents.bulkCreate([document1, document2]);
+      request.get('/api/v1/documents/')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body[0].title).to.equal('My first document');
+          expect(response.body[0].content).to.equal('The best content');
+          done();
+        });
+    });
+  });
+  describe('Retrieve Document Endpoint', () => {
+    beforeEach((done) => {
+      models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+        models.Documents.bulkCreate([document1, document2]);
+        done();
+      });
+    });
+    it('should return a 404 error if document not found', (done) => {
+      models.Documents.create(document1);
+      request.get('/api/v1/documents/10')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('The Document Does not Exist');
+          done();
+        });
+    });
+    it('should not allow an user with invalid token to get documents', (done) => {
+      models.Documents.create(document1);
+      request.get('/api/v1/documents/1')
+        .set('Authorization', `${unauthorizedToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal('Invalid Token');
+          done();
+        });
+    });
+    it('should successfuly return the document found for an authorized admin',
+      (done) => {
+        models.Documents.create(document1);
+        request.get('/api/v1/documents/1')
+          .set('Authorization', `${adminToken}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/documents/1')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
+          .end((err, response) => {
+            expect(response.status).to.equal(200);
+            expect(response.body.title).to.equal('My first document');
+            done();
+          });
+      });
+    it('should not allow an invalid document id when retrieving document', (done) => {
+      request.get('/api/v1/documents/p')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal(
+            'Invalid Document ID');
+          done();
         });
-     });
+    });
+
+    it('should successfuly return the document found for an authorized subscriber',
+      (done) => {
+        models.Documents.create(document2);
+        request.get('/api/v1/documents/2')
+          .set('Authorization', `${subscriberToken}`)
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .end((err, response) => {
+            expect(response.status).to.equal(200);
+            expect(response.body.title).to.equal('Computer Science');
+            done();
+          });
+      });
+    it('should not retrieve any document for an authorized subscriber',
+      (done) => {
+        request.get('/api/v1/documents/3')
+          .set('Authorization', `${subscriberToken}`)
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .end((err, response) => {
+            expect(response.status).to.equal(404);
+            expect(response.body.message).to.equal('The Document Does not Exist');
+            done();
+          });
+      });
+  });
+  describe('Update Document Endpoint', () => {
+    beforeEach((done) => {
+      models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+        models.Documents.bulkCreate([document1, document2]);
+        done();
+      });
+    });
+    it('should return a 404 error if document not found', (done) => {
+      models.Documents.create(document1);
+      request.put('/api/v1/documents/10')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(updateDocument)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('The Document Does not Exist');
+          done();
+        });
+    });
+    it('should not allow a user to update document with invalid document id', (done) => {
+      request.put('/api/v1/documents/q')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(updateDocument)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal('Invalid Document ID');
+          done();
+        });
+    });
+    it('should allow an authorized subscriber to delete a document created by user', (done) => {
+      request.put('/api/v1/documents/2')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(updateDocument)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          done();
+        });
+    });
+  });
+
+  describe('Delete Documents Endpoint', () => {
+    beforeEach((done) => {
+      models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+        models.Documents.bulkCreate([document1, document2]);
+        done();
+      });
+    });
+    it('should return a 404 error if document not found in the database', (done) => {
+      models.Documents.create(document1);
+      request.delete('/api/v1/documents/10')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('The Document Does not Exist');
+          done();
+        });
+    });
+    it('should return a bad request status if a user uses a non numeric id to delete document', (done) => {
+      request.delete('/api/v1/documents/q')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal('Invalid Document ID');
+          done();
+        });
+    });
+    it('should allow an authorize admin successfully delete a document', (done) => {
+      models.Documents.create(document1);
+      request.delete('/api/v1/documents/1')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.message).to.equal(
+            'The Document has been deleted successfully.');
+          done();
+        });
+    });
+    it('should allow an authorize subscriber successfully delete a document ', (done) => {
+      models.Documents.create(document2);
+      request.delete('/api/v1/documents/2')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.message).to.equal(
+            'The Document has been deleted successfully.');
+          done();
+        });
+    });
+  });
 });
 
-it('should return invalid id when trying to retrieve a with non-existing id', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/documents/q')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('Invalid document ID');
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should return document does not exist', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/documents/2')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('Document Not Found');
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should successfully retrieve document when it is an editor', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/documents')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-});
-it('should successfully retrieve document', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@jack.com',
-      username: 'daniel',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/documents')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should return connection error', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/documents')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(400);
-                  done();
-                });
-            });
-        });
-     });
-});
-
-// test to update document 
-
-it('should return invalid id when trying to update a document', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .put('/api/v1/documents/q')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('Invalid document ID');
-                  done();
-                });
-            });
-        });
-     });
-});
-it('should return document not found', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .put('/api/v1/search/documents/?q=doesnotexist')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(404);
-                  done();
-                });
-            });
-        });
-     });
-});
-it('should return document not found when trying to update a document that does not exist', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .put('/api/v1/documents/2')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(404);
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should update a document successfully', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .put('/api/v1/documents/1')
-            .send({
-              title: 'another title'
-            })
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should find a document successfully', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .put('/api/v1/documents/1')
-            .send({
-              title: 'another title'
-            })
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should return access denied or no token provided', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .put('/api/v1/documents/1')
-            .send({
-              title: 'another title'
-            })
-            .set('Authorization', ``)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(401);
-                  done();
-                });
-            });
-        });
-     });
-});
- // Test for deleting documents
-
-it('should return invalid id when deleting document', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .delete('/api/v1/documents/q')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('Invalid document ID');
-              expect(res.status).to.equal(400);
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should delete document successfully', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .delete('/api/v1/documents/1')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('The Document has been deleted successfully.');
-                  done();
-                });
-            });
-        });
-     });
-});
-
-it('should delete document successfully', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .delete('/api/v1/documents/1')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('The Document has been deleted successfully.');
-                  done();
-                });
-            });
-        });
-     });
-});
-it('should show a message - document not found ', (done) => {
-       const password = bcrypt.hashSync('blessing', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'blessing@blessing.com',
-      username: 'blessing',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'blessing',
-        password: 'blessing',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(204)
-          .end((err, res) => {
-          request(app)
-            .delete('/api/v1/documents/2')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('Document Not Found');
-              expect(res.status).to.equal(404);
-                  done();
-                });
-            });
-        });
-     });
-});
- });

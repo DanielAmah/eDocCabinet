@@ -22,8 +22,6 @@
 .highlight .gp {
   color: #555555;
 }
-.highlight .gs {
-}
 .highlight .gu {
   color: #aaaaaa;
 }
@@ -330,10 +328,12 @@ Register and get a token to be insert in the header</p>
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"userId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="s2">"username"</span><span class="p">:</span><span class="s2">"blessing"</span><span class="p">,</span>
-  <span class="s2">"email"</span><span class="p">:</span><span class="s2">"blessing@blessing.com"</span>
-  <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJrZW5wYWNoaSIsInJvbGVJZCI6MiwiaWF0IjoxNDk2MDAxNTE4LCJleHAiOjE0OTY2MDYzMTh9.GjmEBd_9LH9b_Gdabgdfit2HfkFBZfPshquUnAmRXV8"</span>
+    <span class="s2">"oldUser"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"success"</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="s2">"userId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">"userEmail"</span><span class="p">:</span> <span class="s2">"blessing@blessing.com"</span>
+    <span class="p">},</span>
+    <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJSb2xlIjoxLCJ1c2VyVXNlcm5hbWUiOiJhZG1pbiIsInVzZXJFbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsImlhdCI6MTUwMjQ2NTY1NiwiZXhwIjoxNTAyNzI0ODU2fQ.uUqKVtOIAe9tx3vajVSZr8kiiWwjWzBFxR3tPiGMx3U"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request'>Request</h3>
 <ul>
@@ -354,20 +354,50 @@ You must set the token at the header after login to access protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"users"</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"admin@admin.com"</span><span class="p">,</span>
-      <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
-      <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"daniel@gmail.com"</span><span class="p">,</span>
-      <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"daniel"</span><span class="p">,</span>
-      <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">2</span>
+    <span class="s2">"userlist"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"admin@admin.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:09:48.519Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"daniel@daniel.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"daniel"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:12:36.368Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"blessing@blessing.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"blessing"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:13:11.664Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jamesdoe@email.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jamesdoe"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T14:54:25.253Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jan@email.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:53:21.524Z"</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"totalUserCount"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">"currentPage"</span><span class="p">:</span> <span class="mi">1</span>
     <span class="p">}</span>
-  <span class="p">],</span>
+<span class="p">}</span>
 </code></pre><h3 id='request'>Request</h3>
 <ul>
 <li>Endpoint: GET: <code>api/v1/users</code></li>
@@ -383,30 +413,39 @@ You must set the token at the header after login to access protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"users"</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"admin@admin.com"</span><span class="p">,</span>
-      <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
-      <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"daniel@gmail.com"</span><span class="p">,</span>
-      <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"daniel"</span><span class="p">,</span>
-      <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">2</span>
+    <span class="s2">"userlist"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"blessing@blessing.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"blessing"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:13:11.664Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jamesdoe@email.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jamesdoe"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T14:54:25.253Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jan@email.com"</span><span class="p">,</span>
+            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:53:21.524Z"</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"totalUserCount"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="s2">"3"</span><span class="p">,</span>
+        <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s2">"currentPage"</span><span class="p">:</span> <span class="mi">1</span>
     <span class="p">}</span>
-  <span class="p">],</span>
-  <span class="s2">"metaData"</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">"page"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">"totalCount"</span><span class="p">:</span> <span class="mi">2</span>
-  <span class="p">}</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-2'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/users/?limit=2&amp;offset=0</code></li>
+<li>Endpoint: GET: <code>api/v1/users/?limit=3&amp;offset=2</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='query-parameters'>Query Parameters</h3>
@@ -438,20 +477,22 @@ You must set the token at the header after login to access protected routes
 <p>Request:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"bosskp@bleach.com"</span><span class="p">,</span>
-  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"kenpachi"</span><span class="p">,</span>
-  <span class="s2">"password"</span><span class="p">:</span> <span class="s2">"bankai!"</span><span class="p">,</span>
+  <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jamila@jamila.com"</span><span class="p">,</span>
+  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jamila"</span><span class="p">,</span>
+  <span class="s2">"password"</span><span class="p">:</span> <span class="s2">"jamila"</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre>
 <blockquote>
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"bosskp@bleach.com"</span><span class="p">,</span>
-  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"kenpachi"</span><span class="p">,</span>
-  <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-  <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwidXNlcm5hbWUiOiJrZW5wYWNoaSIsInJvbGVJZCI6MiwiaWF0IjoxNDk2MDAxNTE4LCJleHAiOjE0OTY2MDYzMTh9.GjmEBd_9LH9b_Gdabgdfit2HfkFBZfPshquUnAmRXV8"</span>
+    <span class="s2">"newUser"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"success"</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="s2">"userId"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="s2">"userEmail"</span><span class="p">:</span> <span class="s2">"jamila@jamila.com"</span><span class="p">,</span>
+        <span class="s2">"userUsername"</span><span class="p">:</span> <span class="s2">"jamila"</span>
+    <span class="p">},</span>
+    <span class="s2">"token"</span><span class="p">:</span> <span class="s2">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInVzZXJSb2xlIjozLCJ1c2VyVXNlcm5hbWUiOiJqYW1pbGEiLCJ1c2VyRW1haWwiOiJqYW1pbGFAamFtaWxhLmNvbSIsImlhdCI6MTUwMjQ2Njk4NiwiZXhwIjoxNTAyNzI2MTg2fQ.K8-ScTyG9CVuz2T_V4QAA76Z8AcuSUlMqXeAJ0JZWPg"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-3'>Request</h3>
 <ul>
@@ -468,14 +509,14 @@ You must set the token at the header after login to access protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-  <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"bossmontaro@gmail.com"</span>
-  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"montaro"</span><span class="p">,</span>
-  <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">"id"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jamila@jamila.com"</span><span class="p">,</span>
+    <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jamila"</span><span class="p">,</span>
+    <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-11T15:56:26.154Z"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-4'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>/ap1/v1/users/2</code></li>
+<li>Endpoint: GET: <code>/ap1/v1/users/7</code></li>
 <li>Requires: Authentication
 ### Response</li>
 <li>Status: <code>200: OK</code></li>
@@ -486,21 +527,20 @@ You must set the token at the header after login to access protected routes
 <p>Request:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+  <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jamila@andela.com"</span><span class="p">,</span>
 <span class="p">}</span>
 </code></pre>
 <blockquote>
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-  <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"bossmontaro@gmail.com"</span><span class="p">,</span>
-  <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"montaro"</span><span class="p">,</span>
-  <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"jamila@andela.com"</span><span class="p">,</span>
+    <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"jamila"</span><span class="p">,</span>
+    <span class="s2">"role"</span><span class="p">:</span> <span class="s2">"3"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-5'>Request</h3>
 <ul>
-<li>Endpoint: PUT: <code>api/v1/users/2</code></li>
+<li>Endpoint: PUT: <code>api/v1/users/7</code></li>
 <li>Requires: Authentication</li>
 <li>Body <code>(application/json)</code></li>
 </ul>
@@ -514,11 +554,11 @@ You must set the token at the header after login to access protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"User deleted successfully"</span>
+    <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"User deleted successfully."</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-6'>Request</h3>
 <ul>
-<li>Endpoint: DELETE: <code>api/v1/users/2</code></li>
+<li>Endpoint: DELETE: <code>api/v1/users/7</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='response-5'>Response</h3>
@@ -531,19 +571,14 @@ You must set the token at the header after login to access protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">[</span>
-  <span class="p">{</span>
-    <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"DMS Welcome Message"</span><span class="p">,</span>
-    <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Magical document manager"</span><span class="p">,</span>
-    <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-    <span class="s2">"authorId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-05-28T22:19:08.870Z"</span><span class="p">,</span>
-    <span class="s2">"updatedAt"</span><span class="p">:</span> <span class="s2">"2017-05-28T22:58:17.249Z"</span><span class="p">,</span>
-    <span class="s2">"User"</span><span class="p">:</span> <span class="p">{</span>
-      <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
-      <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="p">{</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"let be epic!!!"</span><span class="p">,</span>
+        <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
+        <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Andela - Simply EPIC"</span><span class="p">,</span>
+        <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
+        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:11:03.208Z"</span>
     <span class="p">}</span>
-  <span class="p">}</span>
 <span class="p">]</span>
 </code></pre><h3 id='request-7'>Request</h3>
 <ul>
@@ -559,27 +594,18 @@ You must set the token at the header after login to access protected routes
 <blockquote>
 <p>Response:</p>
 </blockquote>
-<pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="p">[</span>
+<pre class="highlight javascript tab-javascript"><code><span class="p">[</span>
     <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"montaro"</span><span class="p">,</span>
-      <span class="s2">"fullName"</span><span class="p">:</span> <span class="s2">"Tony Montaro"</span><span class="p">,</span>
-      <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"bossmontaro@gmail.com"</span><span class="p">,</span>
-      <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="s2">"about"</span><span class="p">:</span> <span class="s2">"I love playing chess."</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"daniel@daniel.com"</span><span class="p">,</span>
+        <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"daniel"</span><span class="p">,</span>
+        <span class="s2">"roleId"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:12:36.368Z"</span>
     <span class="p">}</span>
-  <span class="p">],</span>
-  <span class="s2">"metaData"</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">"page"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"totalCount"</span><span class="p">:</span> <span class="mi">1</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<span class="p">]</span>
 </code></pre><h3 id='request-8'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/search/users?q=montaro</code></li>
+<li>Endpoint: GET: <code>api/v1/search/users?q=daniel</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='query-parameters-2'>Query Parameters</h3>
@@ -606,22 +632,54 @@ You must set the token at the header after login to access protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"documents"</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"ES9 - The future of JavaScript"</span><span class="p">,</span>
-      <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"ES9 features are gradually finding its way our native browsers"</span><span class="p">,</span>
-      <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-      <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span>
-    <span class="p">},</span>
-     <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Andela- The future of technology in Africa"</span><span class="p">,</span>
-      <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Andela is building a world of technology leaders."</span><span class="p">,</span>
-      <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-      <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span>
+    <span class="s2">"listDocuments"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"let be epic!!!"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Andela - Simply EPIC"</span><span class="p">,</span>
+            <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
+            <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:11:03.208Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"es9"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"The heart of Javascript"</span><span class="p">,</span>
+            <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"private"</span><span class="p">,</span>
+            <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T15:15:14.741Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"jundoe@email.com"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+            <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"private"</span><span class="p">,</span>
+            <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:56:24.201Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"jundoe@email.com"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"sakjskajkgasgasg"</span><span class="p">,</span>
+            <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"private"</span><span class="p">,</span>
+            <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:56:37.889Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"jundoe@email.com"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"sakjskajkgasgasg"</span><span class="p">,</span>
+            <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"private"</span><span class="p">,</span>
+            <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:56:50.804Z"</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"totalUserCount"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">"currentPage"</span><span class="p">:</span> <span class="mi">1</span>
     <span class="p">}</span>
-  <span class="p">]</span>
 <span class="p">}</span>
 </code></pre><h3 id='request'>Request</h3>
 <ul>
@@ -638,32 +696,42 @@ You must set the token at the header after login to access protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"documents"</span><span class="p">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"ES9 - The future of JavaScript"</span><span class="p">,</span>
-      <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"ES9 features are gradually finding its way our native browsers"</span><span class="p">,</span>
-      <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-      <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span>
-    <span class="p">},</span>
-     <span class="p">{</span>
-      <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-      <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Andela- The future of technology in Africa"</span><span class="p">,</span>
-      <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"Andela is building a world of technology leaders."</span><span class="p">,</span>
-      <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-      <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span>
+    <span class="s2">"listDocuments"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"jundoe@email.com"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+            <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"private"</span><span class="p">,</span>
+            <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:56:24.201Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"jundoe@email.com"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"sakjskajkgasgasg"</span><span class="p">,</span>
+            <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"private"</span><span class="p">,</span>
+            <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:56:37.889Z"</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"jundoe@email.com"</span><span class="p">,</span>
+            <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"sakjskajkgasgasg"</span><span class="p">,</span>
+            <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"private"</span><span class="p">,</span>
+            <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"jundoe"</span><span class="p">,</span>
+            <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:56:50.804Z"</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"totalUserCount"</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s2">"pageSize"</span><span class="p">:</span> <span class="s2">"5"</span><span class="p">,</span>
+        <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">"currentPage"</span><span class="p">:</span> <span class="mi">1</span>
     <span class="p">}</span>
-  <span class="p">],</span>
-  <span class="s2">"metaData"</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">"page"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-    <span class="s2">"totalCount"</span><span class="p">:</span> <span class="mi">2</span>
-  <span class="p">}</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-2'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>api/v1/documents/?limit=2&amp;offset=0</code></li>
+<li>Endpoint: GET: <code>api/v1/documents?limit=5&amp;offset=2</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='query-parameters'>Query Parameters</h3>
@@ -697,18 +765,17 @@ You must set the token at the header after login to access protected routes
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
   <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"A day at the beach"</span><span class="p">,</span>
   <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever."</span><span class="p">,</span>
-  <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
+  <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span>
 <span class="p">}</span>
 </code></pre>
 <blockquote>
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
- <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"A day at the beach"</span><span class="p">,</span>
-  <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever."</span><span class="p">,</span>
-  <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-  <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span>
+    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"a day at the beach"</span><span class="p">,</span>
+    <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever"</span><span class="p">,</span>
+    <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
+    <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Document created successfully"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-3'>Request</h3>
 <ul>
@@ -725,15 +792,16 @@ You must set the token at the header after login to access protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
- <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"A day at the beach"</span><span class="p">,</span>
-  <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever."</span><span class="p">,</span>
-  <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-  <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span>
+    <span class="s2">"id"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"a day at the beach"</span><span class="p">,</span>
+    <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
+    <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever"</span><span class="p">,</span>
+    <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
+    <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-11T16:14:03.456Z"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-4'>Request</h3>
 <ul>
-<li>Endpoint: GET: <code>/ap1/v1/document/3</code></li>
+<li>Endpoint: GET: <code>api/v1/documents/7</code></li>
 <li>Requires: Authentication
 ### Response</li>
 <li>Status: <code>200: OK</code></li>
@@ -751,15 +819,15 @@ You must set the token at the header after login to access protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
- <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Another day in the beach"</span><span class="p">,</span>
-  <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever."</span><span class="p">,</span>
-  <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-  <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span>
+    <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"The Document has been successfully updated"</span><span class="p">,</span>
+    <span class="s2">"documentId"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+    <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"another day in the beach"</span><span class="p">,</span>
+    <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever"</span><span class="p">,</span>
+    <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-5'>Request</h3>
 <ul>
-<li>Endpoint: PUT: <code>api/v1/documents/3</code></li>
+<li>Endpoint: PUT: <code>api/v1/documents/7</code></li>
 <li>Requires: Authentication</li>
 <li>Body <code>(application/json)</code></li>
 </ul>
@@ -773,11 +841,11 @@ You must set the token at the header after login to access protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Document deleted successfully"</span>
+    <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"The Document has been deleted successfully."</span>
 <span class="p">}</span>
 </code></pre><h3 id='request-6'>Request</h3>
 <ul>
-<li>Endpoint: DELETE: <code>api/v1/documents/1</code></li>
+<li>Endpoint: DELETE: <code>api/v1/documents/4</code></li>
 <li>Requires: Authentication</li>
 </ul>
 <h3 id='response-5'>Response</h3>
@@ -789,17 +857,16 @@ You must set the token at the header after login to access protected routes
 <blockquote>
 <p>Response:</p>
 </blockquote>
-<pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"result"</span><span class="p">:</span> <span class="p">[</span>
+<pre class="highlight javascript tab-javascript"><code><span class="p">[</span>
     <span class="p">{</span>
-         <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-         <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Another day in the beach"</span><span class="p">,</span>
-         <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever."</span><span class="p">,</span>
-         <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
-         <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"daniel"</span>
+        <span class="s2">"id"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"another day in the beach"</span><span class="p">,</span>
+        <span class="s2">"access"</span><span class="p">:</span> <span class="s2">"public"</span><span class="p">,</span>
+        <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"the best scene ever"</span><span class="p">,</span>
+        <span class="s2">"owner"</span><span class="p">:</span> <span class="s2">"admin"</span><span class="p">,</span>
+        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-11T16:14:03.456Z"</span>
     <span class="p">}</span>
-  <span class="p">],</span>
-<span class="p">}</span>
+<span class="p">]</span>
 </code></pre><h3 id='request-7'>Request</h3>
 <ul>
 <li>Endpoint: GET: <code>api/v1/search/documents/?q=Another day in the beach</code></li>
@@ -832,17 +899,17 @@ You must set the token at the header after login to access protected routes
     <span class="p">{</span>
         <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"administrator"</span><span class="p">,</span>
-        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-07-31T10:49:21.624Z"</span>
+        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T14:25:12.710Z"</span>
     <span class="p">},</span>
     <span class="p">{</span>
         <span class="s2">"id"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
         <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"editor"</span><span class="p">,</span>
-        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-07-31T10:49:21.624Z"</span>
+        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T14:25:12.710Z"</span>
     <span class="p">},</span>
     <span class="p">{</span>
         <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
         <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"subscriber"</span><span class="p">,</span>
-        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-07-31T10:49:21.624Z"</span>
+        <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-02T14:25:12.710Z"</span>
     <span class="p">}</span>
 <span class="p">]</span>
 </code></pre><h3 id='request'>Request</h3>
@@ -860,17 +927,15 @@ You must set the token at the header after login to access protected routes
 <p>Request:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-  <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"publisher"</span><span class="p">,</span>
+  <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"publisher"</span>
 <span class="p">}</span>
 </code></pre>
 <blockquote>
 <p>Response:</p>
 </blockquote>
-<pre class="highlight javascript tab-javascript"><code>  <span class="p">{</span>
-   <span class="s2">"id"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
-   <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"publisher"</span><span class="p">,</span>
-   <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-07-31T10:49:21.624Z"</span>
-    <span class="p">},</span>
+<pre class="highlight javascript tab-javascript"><code> <span class="p">{</span>
+    <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Roles created successfully"</span>
+<span class="p">}</span>
 </code></pre><h3 id='request-2'>Request</h3>
 <ul>
 <li>Endpoint: POST: <code>api/v1/roles/</code></li>
@@ -915,10 +980,6 @@ You must set the token at the header after login to access protected routes
 <tr>
 <td>500</td>
 <td>Internal Server Error.</td>
-</tr>
-<tr>
-<td>503</td>
-<td>Service Unavailable.</td>
 </tr>
 </tbody></table>
 

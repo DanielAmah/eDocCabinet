@@ -1,5 +1,6 @@
-import getRole from '../helpers/Helper';
+import RoleHelper from '../helpers/RoleHelper';
 import model from '../models/';
+
 
 const User = model.Users;
 const Roles = model.Roles;
@@ -14,7 +15,14 @@ const roleController = {
    * @return {object} - returns response status and json data
    */
   newRole(request, response) {
-    if (getRole.isAdmin(request)) {
+    RoleHelper.Validation(request);
+    const errors = request.validationErrors();
+    if (errors) {
+      response.status(400).send(RoleHelper.ValidationErrorMessage(errors));
+    } else {
+      if (!RoleHelper.isAdmin(request)) {
+        return RoleHelper.AccessDenied(response);
+      }
       return Roles
             .create({
               title: (request.body.title).toLowerCase(),
@@ -22,15 +30,10 @@ const roleController = {
             .then(() => response.status(201).send({
               message: 'Roles created successfully'
             }))
-              .catch(error => response.status(400).send({
-                error,
-                message: 'Error creating new role'
-              }));
+              .catch(error => RoleHelper.DatabaseError(response, error));
     }
-    return response.status(401).send({
-      message: 'Access Denied'
-    });
   },
+
 
   /**
    * listRoles: This allows admin to list all roles
@@ -40,17 +43,15 @@ const roleController = {
    * @return {object} - returns response status and json data
    */
   listRoles(request, response) {
-    if (getRole.isAdmin(request)) {
-      return Roles
+    if (!RoleHelper.isAdmin(request)) {
+      return RoleHelper.AccessDenied(response);
+    }
+    return Roles
             .findAll({
               attributes: ['id', 'title', 'createdAt']
             })
             .then(roles => response.status(200).send(roles))
-             .catch(error => response.status(400).send({ error, message: 'Error retrieving all roles' }));
-    }
-    return response.status(401).send({
-      message: 'Access Denied'
-    });
+             .catch(error => RoleHelper.ListDatabaseError(response, error));
   },
 
       /**
@@ -62,8 +63,10 @@ const roleController = {
    */
 
   listRolesAndUsers(request, response) {
-    if (getRole.isAdmin(request)) {
-      return Roles
+    if (!RoleHelper.isAdmin(request)) {
+      return RoleHelper.AccessDenied(response);
+    }
+    return Roles
              .findAll({
                include: [{
                  model: User,
@@ -72,13 +75,7 @@ const roleController = {
                }]
              })
             .then(roles => response.status(200).send(roles))
-             .catch(error => response.status(400).send({
-               error, message: 'Error occured while retrieving role'
-             }));
-    }
-    return response.status(401).send({
-      message: 'Access Denied'
-    });
+             .catch(error => RoleHelper.ListRolesAndUsersDatabaseError(response, error));
   },
 };
 export default roleController;

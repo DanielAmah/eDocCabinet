@@ -3,6 +3,7 @@ import logger from 'morgan';
 import bodyParser from 'body-parser';
 import http from 'http';
 import path from 'path';
+import validator from 'express-validator';
 import Routes from './routes';
 
 
@@ -19,8 +20,9 @@ app.use(express.static(path.resolve(__dirname, './../public')));
 // Parse incoming requests data (https://github.com/expressjs/body-parser)
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(validator());
 
-const port = parseInt(process.env.PORT, 10) || 8080;
+const port = parseInt(process.env.PORT, 10) || 8000;
 app.set('port', port);
 
 Routes(app);

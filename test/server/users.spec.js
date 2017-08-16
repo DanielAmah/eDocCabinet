@@ -1,27 +1,37 @@
-import chai, { expect } from 'chai';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+ import supertest from 'supertest';
+ import { expect } from 'chai';
+ import { TestHelper } from '../TestHelper';
+ import models from '../../server/models';
+ import JsonWebTokenHelper from '../../server/helpers/JsonWebTokenHelper';
 
-const User = require('../../server/models').Users;
-const Document = require('../../server/models').Documents;
-const Role = require('../../server/models').Roles;
-const request = require('supertest');
-const assert = require('chai').assert;
-require('babel-register');
-const app = require('../../build/server');
 
-let token;
+ const app = require('../../build/server');
 
-describe('User Controller ', () => {
-  beforeEach((done) => {
-    Role.destroy({
-      where: {},
-      truncate: true,
-      cascade: true,
-      restartIdentity: true
-    }).then((error) => {
-      if (!error) {
-        Document
+ const request = supertest.agent(app);
+
+
+ const adminUser = TestHelper.specUser1;
+ const subscriberUser = TestHelper.specUser3;
+ const document1 = TestHelper.specDocument1;
+ const specWrongEmail = TestHelper.specWrongEmail;
+ const invalidUser = TestHelper.invalidUser;
+ const specNoPassword = TestHelper.specNoPassword;
+ const specUpdateUser = TestHelper.specUpdateUser;
+
+ const adminToken = JsonWebTokenHelper(adminUser);
+ const subscriberToken = JsonWebTokenHelper(subscriberUser);
+
+
+ describe('Users Controller', () => {
+   beforeEach((done) => {
+     models.Roles.destroy({
+       where: {},
+       truncate: true,
+       cascade: true,
+       restartIdentity: true
+     }).then((err) => {
+       if (!err) {
+         models.Documents
           .destroy({
             where: {},
             truncate: true,
@@ -30,908 +40,443 @@ describe('User Controller ', () => {
           })
           .then((err) => {
             if (!err) {
-              User.destroy({
+              models.Users.destroy({
                 where: {},
                 truncate: true,
                 cascade: true,
                 restartIdentity: true
               }).then((err) => {
                 if (!err) {
-                  Role.bulkCreate([
-                    {
-                      title: 'administrator'
-                    },
-                    {
-                      title: 'editor'
-                    },
-                    {
-                      title: 'subcriber'
-                    }
-                  ]).then((err) => {
-                    if (!err) {
-                    }
+                  models.Roles.bulkCreate([
+                    TestHelper.adminRole,
+                    TestHelper.editorRole,
+                    TestHelper.subscriberRole
+                  ]).then(() => {
                     done();
                   });
                 }
               });
             }
           });
-      }
-    });
-  });
-    it('should create a new user', (done) => {
-    const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-      .post('/api/v1/users/')
-      .send({
-        email: 'daniel@daniel.com',
-        username: 'daniel',
-        password: password,
-        roleId: 3
-      })
-      .expect(201)
-      .end((err, res) => {
-        expect(res.status).to.equal(201);
-        done();
-      });
-  });
+       }
+     });
+   });
+   describe('Create User Endpoint', () => {
+     it('should be able to create an admin user', (done) => {
+       request.post('/api/v1/users/')
+        .send(adminUser)
+        .end((err, response) => {
+          expect(response.status).to.equal(201);
+          expect(typeof response.body).to.equal('object');
+          expect(response.body.newUser.userEmail).to.equal('admin@admin.com');
+          expect(response.body.newUser.userUsername).to.equal('admin');
+          done();
+        });
+     });
+     it('should be able to create a subscriber user', (done) => {
+       request.post('/api/v1/users/')
+        .send(subscriberUser)
+        .end((err, response) => {
+          expect(response.status).to.equal(201);
+          expect(typeof response.body).to.equal('object');
+          expect(response.body.newUser.userEmail).to.equal('daniel@daniel.com');
+          expect(response.body.newUser.userUsername).to.equal('daniel');
+          done();
+        });
+     });
+     it('should not create a user with an invalid email', (done) => {
+       request.post('/api/v1/users/')
+        .send(specWrongEmail)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body[0].msg).to.equal('Enter a valid email address (someone@organization.com)');
+          done();
+        });
+     });
+     it('should not create a user with an empty email', (done) => {
+       request.post('/api/v1/users/')
+        .send(invalidUser)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body[0].msg).to.equal('Enter a valid email address (someone@organization.com)');
+          done();
+        });
+     });
+     it('should not create a user with an empty password', (done) => {
+       request.post('/api/v1/users/')
+        .send(specNoPassword)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body[0].msg).to.equal('Enter a valid password of more than 5 characters');
+          done();
+        });
+     });
+     it('should not create a user with an email that exists', (done) => {
+       models.Users.create(
+        adminUser
+      );
+       request.post('/api/v1/users/')
+        .send(adminUser)
+        .end((err, response) => {
+          expect(response.status).to.equal(409);
+          expect(response.body.message).to.equal('User Already Exists');
+          done();
+        });
+     });
+     describe('the test to get users', () => {
+       it('should return the message when no user is found', (done) => {
+         models.Users.destroy({
+           where: {},
+           truncate: true,
+           cascade: true,
+           restartIdentity: true
+         });
+         request.get('/api/v1/users/')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(typeof response.body).to.equal('object');
+          done();
+        });
+       });
+       beforeEach((done) => {
+         models.Users.create(adminUser).then(() => {
+           done();
+         });
+       });
+       it('should successfully get all users', (done) => {
+         request.get('/api/v1/users/')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.meta.page).to.equal(1);
+          expect(response.body.meta.pageCount).to.equal(1);
+          expect(response.body.meta.pageSize).to.equal(10);
+          expect(response.body.meta.totalCount).to.equal(1);
+          done();
+        });
+       });
+       it('should not allow a subscriber to get all users', (done) => {
+         request.get('/api/v1/users/')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal(
+            'Access Denied. You can not see register subscribers');
+          done();
+        });
+       });
+       it('should successfully apply pagination to list of users', (done) => {
+         request.get('/api/v1/users?limit=1&offset=0')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.userlist[0].email).to.equal(adminUser.email);
+          expect(response.body.userlist[0].roleId).to.equal(1);
+          expect(response.body.meta.page).to.equal(1);
+          done();
+        });
+       });
+       it('should successfully list all users and documents on admin access', (done) => {
+         request.get('/api/v1/users-docs/?limit=1&offset=0')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.userlist[0].email).to.equal(adminUser.email);
+          expect(response.body.userlist[0].roleId).to.equal(1);
+          expect(response.body.meta.page).to.equal(1);
+          done();
+        });
+       });
+       it('should not successfully list all users and documents on subscriber access', (done) => {
+         request.get('/api/v1/users-docs/')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal('Access Denied. You can not see subscribers and their documents');
+          done();
+        });
+       });
+     });
+     describe('Retrieve User Endpoint', () => {
+       beforeEach((done) => {
+         models.Users.create(adminUser).then(() => {
+           done();
+         });
+       });
+       it('should return a message \'User not found\' if no user found to retrieve', (done) => {
+         request.get('/api/v1/users/10')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('User not found');
+          done();
+        });
+       });
+       it('should successfuly return the user if found', (done) => {
+         request.get('/api/v1/users/1')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.email).to.equal('admin@admin.com');
+          expect(response.body.username).to.equal('admin');
+          done();
+        });
+       });
+       it('should not successfuly return if it is a subscriber access', (done) => {
+         request.get('/api/v1/users/1')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal('Access Denied. You can not find other register subscribers');
+          done();
+        });
+       });
+       it('should not allow invalid UserId', (done) => {
+         request.get('/api/v1/users/d')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal(
+            'Invalid User ID');
+          done();
+        });
+       });
+     });
+     describe('Update User Endpoint', () => {
+       beforeEach((done) => {
+         models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+           done();
+         });
+       });
+       it('should return a 404 error if user not found', (done) => {
+         request.put('/api/v1/users/10')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(specUpdateUser)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('User not found');
+          done();
+        });
+       });
+       it('should not allow invalid id to be updated', (done) => {
+         request.put('/api/v1/users/p')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(specUpdateUser)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal('Invalid User ID');
+          done();
+        });
+       });
+       it('should not other a subscriber to update someone\'s account', (done) => {
+         request.put('/api/v1/users/1')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(specUpdateUser)
+        .end((err, response) => {
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal('Access Denied. You can not update other register subscribers');
+          done();
+        });
+       });
+       it('should not update a user role with a wrong used id parameter', (done) => {
+         request.put('/api/v1/users-role/q')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(specUpdateUser)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body[0].msg).to.equal('Enter a valid role id');
+          done();
+        });
+       });
 
-     it('should not create a new user without a username and roleId', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-      .post('/api/v1/users/')
-      .send({
-        email: 'daniel@daniel.com',
-        username: '',
-        password: password,
-        roleId: ''
-      })
-      .expect(201)
-      .end((err, res) => {
-        expect(res.status).to.equal(400);
-        done();
-      });
-  });
+       it('should not update a user role without a role id', (done) => {
+         request.put('/api/v1/users-role/1')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send({ roleId: '' })
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body[0].msg).to.equal('Enter a valid role id');
+          done();
+        });
+       });
 
-     it('should list all users if it is an admin', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-   User.create({
-        email: 'admin@admin.com',
-        username: 'admin',
-        password: password,
-        roleId: 1
-      })
-       .then((res) => {
-      request(app)
-        .post('/api/v1/users/login')
+       it('should not update a user role without a role id', (done) => {
+         request.put('/api/v1/users-role/1')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send({ roleId: 2 })
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(typeof response.body).to.equal('object');
+          done();
+        });
+       });
+
+       it('should successfully update an admin account', (done) => {
+         request.put('/api/v1/users/1')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
         .send({
-          username: 'admin',
+          email: 'administrator@edoc.com',
           password: 'admin',
+          username: 'administrator'
         })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/users/')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(typeof (res.body)).to.equals('object');
-                  done();
-                });
-            });
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.email).to.equal('administrator@edoc.com');
+          expect(response.body.username).to.equal('administrator');
+
+          done();
         });
+       });
      });
 
-     it('should list all users if it is an admin', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-   User.create({
-        email: 'admin@admin.com',
-        username: 'admin',
-        password: password,
-        roleId: 1
-      })
-       .then((res) => {
-      request(app)
-        .post('/api/v1/users/login')
-        .send({
-          username: 'admin',
-          password: 'admin',
-        })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/users/?limit=2&offset=0')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(typeof (res.body)).to.equals('object');
-                  done();
-                });
-            });
+     describe('Delete Users Endpoint', () => {
+       beforeEach((done) => {
+         models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+           done();
+         });
+       });
+       it('should not allow a subscriber to delete a user', (done) => {
+         request.delete('/api/v1/users/2')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal(
+            'Access Denied. You can not remove other register subscribers');
+          done();
         });
-     });
-
-
-it('should not list all users if it is not an admin', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/users/')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(401);
-                  done();
-                });
-            });
+       });
+       it('should return a 404 error if user not found', (done) => {
+         request.delete('/api/v1/users/10')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('User not found');
+          done();
         });
-     });
-
-
-     it('should not list all users if user is an editor', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/users/')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(401);
-                  done();
-                });
-            });
+       });
+       it('should successfully delete a user', (done) => {
+         request.delete('/api/v1/users/1')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.message).to.equal('User deleted successfully.');
+          done();
         });
-     });
-
-     it('should list all users and document if it an admin', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/users-docs/')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
+       });
+       it('should not successfully delete a user if id is not a number', (done) => {
+         request.delete('/api/v1/users/q')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal('Invalid User ID');
+          done();
         });
+       });
      });
-
-     it('should not list all users and document if it not an admin', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/users-docs/')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(401);
-                  done();
-                });
-            });
-        });
-     });
-    
-     it('should not list all users and document if it an editor', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/users-docs/')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(401);
-                  done();
-                });
-            });
-        });
-     });
-
-     it('should update users if it an admin', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 2
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .put('/api/v1/users/1')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-     
-
-      it('should update user if logged in as user', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .put('/api/v1/users/1')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-     
-     it('should update the email of a user', (done) => {
-    const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .put('/api/v1/users/1')
-          .send({
-            email: 'james@james.com',
-          })
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.body.email).to.equal('james@james.com');
-            done();
-          });
-          });
-        });
-     });
-
-     it('should show a message user not found if no user in the user table', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .put('/api/v1/users/3')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('User Not Found');
-            done();
-          });
-          });
-        });
-     });
-      
-   it('should show a message email already exists when using same email', (done) => {
-    const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .put('/api/v1/users/1')
-          .send({
-            email: 'daniel@daniel.com',
-          })
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.status).to.equal(200);
-            done();
-          });
-          });
-        });
-     });
-     
-      it('should show Invalid User ID', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .put('/api/v1/users/q')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Invalid User ID');
-            done();
-          });
-          });
-        });
-     });
-
-      it('should show Invalid User ID when getting users', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .get('/api/v1/users/q')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Invalid User ID');
-            done();
-          });
-          });
-        });
-     });
-
-
-           it('should list a user when logged in as admin', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .get('/api/v1/users/1')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.status).to.equal(200);
-            done();
-          });
-          });
-        });
-     });
-
-     it('should show a message user not found when viewing users not in the database', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .put('/api/v1/users/3')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('User Not Found');
-            done();
-          });
-          });
-        });
-     });
-
-     it('should show a message access denied if not an admin', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .get('/api/v1/users/1')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Access Denied');
-            done();
-          });
-          });
-        });
-     });
-      it('should show a message access denied if not an admin', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .get('/api/v1/users/?limit=2&offset=0')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(typeof res.body.meta).to.equal('object');
-            done();
-          });
-          });
-        });
-     });
-
-     it('should show a message access denied', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(400)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .get('/api/v1/users/1')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(200)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Access Denied');
-            done();
-          });
-          });
-        });
-     });
-     
-
-     it('should show a message user not found if no user in database', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(400)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .delete('/api/v1/users/3')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(200)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('User Not Found');
-            done();
-          });
-          });
-        });
-     });
-
-           it('should show Invalid User ID when getting users', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(400)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .delete('/api/v1/users/q')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(200)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Invalid User ID');
-            done();
-          });
-          });
-        });
-     });
-
-       it('should delete  users successfully if admin', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(400)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .delete('/api/v1/users/1')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(200)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('User deleted successfully.');
-            done();
-          });
-          });
-        });
-     });
-
-      it('should show Invalid User ID when getting user document if a letter is used', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(400)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .get('/api/v1/users/q/documents/')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(200)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Invalid User ID');
-            done();
-          });
-          });
-        });
-     });
-
-      it('should show authorized access when viewing documents if not admin', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(400)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .get('/api/v1/users/q/documents/')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(204)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('Unauthorized access');
-            done();
-          });
-          });
-        });
-     });
-
-      it('should no document found if no document for a user', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(400)
-      .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .get('/api/v1/users/1/documents/')
-          .set('Authorization', `${token}`)
-          .set('Accept', 'application/json')
-          .expect(200)
-          .end((err, res) => {
-            expect(res.body.message).to.equal('No document Found');
-            done();
-          });
-          });
-        });
-     });
-
-
-    
-     it('should get document of users', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
+     describe('Get all documents of a user\'s Endpoint', () => {
+       beforeEach((done) => {
+         models.Users.create(adminUser).then(() => {
+           done();
+         });
+         done();
+       });
+       it('should return an empty object if no document is found',
+      (done) => {
+        request.get('/api/v1/users/1/documents')
+          .set('Authorization', `${adminToken}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/users/1/documents')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
+          .end((err, response) => {
+            expect(response.status).to.equal(200);
+            expect(typeof response.body).to.equal('object');
+            done();
+          });
+      });
+       it('should successfully return all documents found', (done) => {
+         models.Documents.create(
+      document1
+      );
+         request.get('/api/v1/users/1/documents')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(typeof response.body).to.equal('object');
+          done();
         });
+       });
+       it('should not successfully return all documents of a user if with an invalid id', (done) => {
+         models.Documents.create(
+      document1
+      );
+         request.get('/api/v1/users/q/documents')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal('Invalid User ID');
+          done();
+        });
+       });
+       it('should not successfully return all documents of a different user without authorization', (done) => {
+         models.Documents.create(
+      document1
+      );
+         request.get('/api/v1/users/1/documents')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal('Access Denied. You can not see documents of other subscribers');
+          done();
+        });
+       });
      });
-});
-});
+   });
+ });
