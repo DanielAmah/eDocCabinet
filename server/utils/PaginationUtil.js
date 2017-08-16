@@ -1,10 +1,10 @@
-const Pagination = {
+const PaginationUtil = {
   getPageSize(limit) {
     return limit;
   },
 
   getPageCount(totalDataCount, limit) {
-    return Math.ceil(totalDataCount / Pagination.getPageSize(limit));
+    return Math.ceil(totalDataCount / PaginationUtil.getPageSize(limit));
   },
 
 
@@ -12,7 +12,7 @@ const Pagination = {
     if ((offset * 1) === 0) {
       return (Math.ceil(offset / limit) + 1);
     }
-    return Math.ceil(offset / limit);
+    return (Math.ceil(offset / limit) + 1);
   }
 };
-module.exports = Pagination;
+module.exports = PaginationUtil;

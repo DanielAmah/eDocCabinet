@@ -1,5 +1,6 @@
-import Pagination from '../utils/pagination';
-import getRole from '../helpers/Helper';
+import RoleHelper from '../helpers/RoleHelper';
+import DocumentHelper from '../helpers/DocumentHelper';
+import PageHelper from '../helpers/PageHelper';
 
 import model from '../models';
 
@@ -16,12 +17,27 @@ const documentController = {
    * @return {object} - returns response status and json data
    */
   newDocument(request, response) {
-    if (request.body.access === 'public'
-          || request.body.access === 'private'
-          || request.body.access === request.decoded.userRole) {
+    DocumentHelper.Validation(request);
+    const errors = request.validationErrors();
+    if (errors) {
+      response.status(400).send(DocumentHelper.ValidationErrorMessage(errors));
+    } else {
+      if (!DocumentHelper.ValidAccess(request)) {
+        return DocumentHelper.InvalidDocumentAccess(response);
+      }
       return Documents
+      .findOne({
+        where: {
+          title: request.body.title
+        }
+      })
+      .then((checkdocument) => {
+        if (checkdocument) {
+          return response.status(409).send({ message: 'A document with this title has been created' });
+        }
+        Documents
             .create({
-              title: (request.body.title).toLowerCase(),
+              title: request.body.title,
               content: request.body.content,
               owner: request.decoded.userUsername,
               userId: request.decoded.userId,
@@ -33,14 +49,9 @@ const documentController = {
               owner: newDocument.owner,
               message: 'Document created successfully'
             }))
-             .catch(error => response.status(400).send({
-               error, message: 'An error occured while creating document'
-             }));
+             .catch(error => DocumentHelper.CreateDatabaseError(response, error));
+      });
     }
-    return response.status(403).send({
-      message:
-            'Invalid document access, save document with your role'
-    });
   },
    /**
    * updateDocument: This allows registered users update saved documents
@@ -51,12 +62,15 @@ const documentController = {
    * @return {object} - returns response status and json data
    */
   updateDocument(request, response) {
-    if (!Number.isInteger(Number(request.params.documentId))) {
-      return response.status(400).json({
-        message: 'Invalid document ID'
-      });
-    }
-    return Documents
+    DocumentHelper.Validation(request);
+    const errors = request.validationErrors();
+    if (errors) {
+      response.status(400).send(DocumentHelper.ValidationErrorMessage(errors));
+    } else {
+      if (!Number.isInteger(Number(request.params.documentId))) {
+        return DocumentHelper.CheckIdIsNumber(response);
+      }
+      return Documents
       .find({
         where: {
           id: request.params.documentId,
@@ -65,15 +79,14 @@ const documentController = {
       })
       .then((document) => {
         if (!document) {
-          return response.status(404).send({
-            message: 'The Document Does not Exist',
-          });
-        }
-        if (request.body.title) {
-          request.body.title = (request.body.title).toLowerCase();
+          DocumentHelper.UpdateDocumentNotExist(response);
         }
         return document
-          .update(request.body, { fields: Object.keys(request.body) })
+          .update({
+            title: request.body.title || document.title,
+            content: request.body.content || document.content,
+            access: request.body.access || document.access
+          })
           .then(() => response.status(200).send({
             message: 'The Document has been successfully updated',
             documentId: document.id,
@@ -81,10 +94,9 @@ const documentController = {
             content: document.content,
             owner: document.owner,
           }))
-           .catch(error => response.status(400).send({ error,
-             message: 'Error updating document'
-           }));
+           .catch(error => DocumentHelper.UpdateDatabaseError(response, error));
       });
+    }
   },
     /**
    * showDocuments: This allows registered users get saved documents,
@@ -96,40 +108,35 @@ const documentController = {
    * @return {object} - returns response status and json data
    */
   showDocuments(request, response) {
-    if (getRole.isAdmin(request) || getRole.isEditor(request)) {
-      const limit = request.query && request.query.limit ? request.query.limit : 10;
-      const offset = request.query && request.query.offset ? request.query.offset : 0;
+    if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
       return Documents
             .findAndCountAll({
               attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
-              limit,
-              offset,
+              limit: PageHelper.GetLimit(request),
+              offset: PageHelper.GetOffset(request)
             })
               .then((documents) => {
-                const totalUserCount = documents.count;
-                const pageSize = Pagination.getPageSize(limit);
-                const pageCount = Pagination.getPageCount(totalUserCount, limit);
-                const currentPage = Pagination.getCurrentPage(limit, offset);
-                const meta = {
-                  totalUserCount,
-                  pageSize,
-                  pageCount,
-                  currentPage,
-                };
+                const meta =
+                PageHelper.GetDocumentPageMeta(request, documents,
+                PageHelper.GetLimit, PageHelper.GetOffset);
                 const listDocuments = documents.rows;
                 response.status(200).send({ listDocuments, meta });
               })
-            .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents'
-            }));
+            .catch(error => DocumentHelper.ListDatabaseError(response, error));
     }
-    return Documents
+    if (request.decoded.userId) {
+      return Documents
           .findAll({
-            where: { access: [request.decoded.userRole, 'public'] },
+            where: {
+              $or: [{ access: 'public' }, { access: 'role',
+                $and: { roleId: request.decoded.userRole } }, { access: 'private',
+                  $and: { userId: request.decoded.userId } }]
+            },
             attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
           })
           .then(documents => response.status(200).send(documents))
-          .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents'
-          }));
+          .catch(error => DocumentHelper.ListDatabaseError(response, error));
+    }
   },
    /**
    * findDocument: This allows registered users get documents by ID
@@ -142,11 +149,9 @@ const documentController = {
    */
   findDocument(request, response) {
     if (!Number.isInteger(Number(request.params.documentId))) {
-      return response.json({
-        message: 'Invalid document ID'
-      });
+      return DocumentHelper.CheckIdIsNumber(response);
     }
-    if (getRole.isAdmin(request) || getRole.isEditor(request)) {
+    if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
       return Documents
             .find({
               where: { id: request.params.documentId },
@@ -154,33 +159,29 @@ const documentController = {
             })
             .then((document) => {
               if (!document) {
-                return response.status(404).send({
-                  message: 'Document Not Found',
-                });
+                return DocumentHelper.DocumentNotExist(response);
               }
               return response.status(200).send(document);
             })
-            .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents'
-            }));
+            .catch(error => DocumentHelper.FindDatabaseError(response, error));
     }
     return Documents
           .find({
             where: {
               id: request.params.documentId,
-              access: [request.decoded.userRole, 'public']
+              $or: [{ access: 'public' }, { access: 'role',
+                $and: { roleId: request.decoded.userRole } }, { access: 'private',
+                  $and: { userId: request.decoded.userId } }]
             },
             attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
           })
           .then((document) => {
             if (!document) {
-              return response.status(404).send({
-                message: 'Document Not Found',
-              });
+              return DocumentHelper.DocumentNotExist(response);
             }
             return response.status(200).send(document);
           })
-          .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents'
-          }));
+          .catch(error => DocumentHelper.FindDatabaseError(response, error));
   },
 
    /**
@@ -194,30 +195,17 @@ const documentController = {
    */
   deleteDocument(request, response) {
     if (!Number.isInteger(Number(request.params.documentId))) {
-      return response.status(400).send({
-        message: 'Invalid document ID'
-      });
+      return DocumentHelper.CheckIdIsNumber(response);
     }
-    if (getRole.isAdmin(request) || getRole.isEditor(request)) {
+    if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
       return Documents
             .find({
               where: {
                 id: request.params.documentId
               }
             })
-            .then((document) => {
-              if (!document) {
-                return response.status(404).send({
-                  message: 'Document Not Found',
-                });
-              }
-              return document
-                .destroy()
-                .then(() => response.status(200)
-                  .send({ message: 'The Document has been deleted successfully.' }))
-                 .catch(error => response.status(400).send({ error, message: 'Error occurred while deleting documents'
-                 }));
-            });
+            .then(document => DocumentHelper.DeleteDocumentLogic(DocumentHelper.DocumentNotExist,
+              response, DocumentHelper.DeleteDatabaseError, document));
     }
     return Documents
           .find({
@@ -227,17 +215,8 @@ const documentController = {
             }
           })
           .then((document) => {
-            if (!document) {
-              return response.status(400).send({
-                message: 'Document Not Found',
-              });
-            }
-            return document
-              .destroy()
-              .then(() => response.status(200)
-                .send({ message: 'The Document has been deleted successfully.' }))
-               .catch(error => response.status(400).send({ error, message: 'Error occurred while deleting documents'
-               }));
+            DocumentHelper.DeleteDocumentLogic(DocumentHelper.DocumentNotExist,
+              response, DocumentHelper.DeleteDatabaseError, document);
           });
   }
 };

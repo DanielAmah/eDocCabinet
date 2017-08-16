@@ -1,27 +1,33 @@
-import chai, { expect } from 'chai';
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import supertest from 'supertest';
+import { expect } from 'chai';
+import { TestHelper } from '../TestHelper';
+import models from '../../server/models';
+import JsonWebTokenHelper from '../../server/helpers/JsonWebTokenHelper';
 
-const User = require('../../server/models').Users;
-const Document = require('../../server/models').Documents;
-const Role = require('../../server/models').Roles;
-const request = require('supertest');
-const assert = require('chai').assert;
-require('babel-register');
+
 const app = require('../../build/server');
 
-let token;
+const request = supertest.agent(app);
 
-describe('Search Controller ', () => {
+
+const adminUser = TestHelper.specUser1;
+const subscriberUser = TestHelper.specUser3;
+const document1 = TestHelper.specDocument1;
+const document2 = TestHelper.specDocument2;
+
+const adminToken = JsonWebTokenHelper(adminUser);
+const subscriberToken = JsonWebTokenHelper(subscriberUser);
+
+describe('Search Controller', () => {
   beforeEach((done) => {
-    Role.destroy({
+    models.Roles.destroy({
       where: {},
       truncate: true,
       cascade: true,
       restartIdentity: true
-    }).then((error) => {
-      if (!error) {
-        Document
+    }).then((err) => {
+      if (!err) {
+        models.Documents
           .destroy({
             where: {},
             truncate: true,
@@ -30,26 +36,18 @@ describe('Search Controller ', () => {
           })
           .then((err) => {
             if (!err) {
-              User.destroy({
+              models.Users.destroy({
                 where: {},
                 truncate: true,
                 cascade: true,
                 restartIdentity: true
               }).then((err) => {
                 if (!err) {
-                  Role.bulkCreate([
-                    {
-                      title: 'administrator'
-                    },
-                    {
-                      title: 'editor'
-                    },
-                    {
-                      title: 'subcriber'
-                    }
-                  ]).then((err) => {
-                    if (!err) {
-                    }
+                  models.Roles.bulkCreate([
+                    TestHelper.adminRole,
+                    TestHelper.editorRole,
+                    TestHelper.subscriberRole
+                  ]).then(() => {
                     done();
                   });
                 }
@@ -59,291 +57,100 @@ describe('Search Controller ', () => {
       }
     });
   });
-
-      it('should return a no key word supplied when no search term', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/search/users/')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('No key word supplied');
-                  done();
-                });
-            });
+  describe('Search Users Endpoint', () => {
+    beforeEach((done) => {
+      models.Users.create(adminUser).then(() => {
+        done();
+      });
+      done();
+    });
+    it('should display the message "User not found" when no user is found', (done) => {
+      request.get('/api/v1/search/users?q=antony')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('User not found');
+          done();
         });
-     });
-
-      it('should return the details of the user if a search term is keyed in', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/search/users/?q=admin')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
+    });
+    it('should not display search for subscriber access', (done) => {
+      request.get('/api/v1/search/users?q=admin')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal('Access Denied. You can not see register subscribers');
+          done();
         });
-     });
-
-        it('should return user does not exist', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/search/users/?q=daniel')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(404);
-              expect(res.body.message).to.equal('User does not exist')
-                  done();
-                });
-            });
+    });
+    it('should display message " no key word supplied " if no search term is used', (done) => {
+      request.get('/api/v1/search/users')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal('No key word supplied');
+          done();
         });
-     });
-
-
-     it('should return access denied  if not admin', (done) => {
-       const password = bcrypt.hashSync('jack', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'daniel@daniel.com',
-      username: 'daniel',
-      password: password,
-      roleId: 3
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'daniel',
-        password: 'jack',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/search/users/?q=admin')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('Access Denied')
-                  done();
-                });
-            });
+    });
+  });
+  describe('Search Documents Endpoint', () => {
+    beforeEach((done) => {
+      models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+        models.Documents.bulkCreate([document1, document2]);
+        done();
+      });
+    });
+    it('should return "no document Found" if no document', (done) => {
+      request.get('/api/v1/search/documents?q=title')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('No document Found');
+          done();
         });
-     });
-
-      it('should return a no key word supplied', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/search/documents/')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.body.message).to.equal('No key word supplied');
-                  done();
-                });
-            });
-        });
-     });
-
-
-     it('should return document not found', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-      .end((err, res) => {
-          token = res.body.token;
-          request(app)
-            .get('/api/v1/search/documents/?q=ES9')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(204)
-                .end((err, res) => {
-              expect(res.status).to.equal(404);
-                  done();
-                });
-            });
-        });
-     });
-
-
-
- it('should return document if it exist', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
+    });
+    it('should successfully return the document found',
+      (done) => {
+        request.get('/api/v1/search/documents/?q=My first document')
+          .set('Authorization', `${adminToken}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/search/documents/?q=title')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(200);
-                  done();
-                });
-            });
-        });
-     });
-});
-
-
-it('should return document not found', (done) => {
-       const password = bcrypt.hashSync('admin', bcrypt.genSaltSync(10));
-    request(app)
-    User.create({
-      email: 'admin@admin.com',
-      username: 'admin',
-      password: password,
-      roleId: 1
-    }).then((res) => {
-      request(app)
-      .post('/api/v1/users/login')
-      .send({
-        username: 'admin',
-        password: 'admin',
-      })
-      .expect(200)
-       .end((err, res) => {
-        token = res.body.token;
-        request(app)
-          .post('/api/v1/documents/')
-          .send({
-            title: 'title',
-            content: 'content',
-            access: 'public'
-          })
-           .set('Authorization', `${token}`)
+          .end((err, response) => {
+            expect(response.status).to.equal(200);
+            expect(response.body[0].title).to.equal('My first document');
+            done();
+          });
+      });
+    it('should display message "no key word supplied" if no search term is used',
+      (done) => {
+        request.get('/api/v1/search/documents/')
+          .set('Authorization', `${adminToken}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
-          .expect(204)
-      .end((err, res) => {
-          request(app)
-            .get('/api/v1/search/documents/?q=doesnotexist')
-            .set('Authorization', `${token}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-                .end((err, res) => {
-              expect(res.status).to.equal(404);
-                  done();
-                });
-            });
+          .end((err, response) => {
+            expect(response.status).to.equal(400);
+            expect(response.body.message).to.equal('No key word supplied');
+            done();
+          });
+      });
+    it('should return "No document found" if no document found for subscriber', (done) => {
+      request.get('/api/v1/search/documents?q=title')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(404);
+          expect(response.body.message).to.equal('No document Found');
+          done();
         });
-     });
+    });
+  });
 });
 
- });

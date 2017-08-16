@@ -23,11 +23,30 @@ export default (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    userId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Users',
+        key: 'id',
+        as: 'userId',
+      },
+    },
+    roleId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Roles',
+        key: 'id',
+        as: 'roleId',
+      },
+    },
   });
   Documents.associate = (models) => {
     Documents.belongsTo(models.Users, {
       foreignKey: 'userId',
       onDelete: 'CASCADE',
+    });
+    Documents.belongsTo(models.Roles, {
+      foreignKey: 'roleId'
     });
   };
   return Documents;

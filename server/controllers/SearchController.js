@@ -1,5 +1,8 @@
-import getRole from '../helpers/Helper';
+import RoleHelper from '../helpers/RoleHelper';
+import UserHelper from '../helpers/UserHelper';
+import DocumentHelper from '../helpers/DocumentHelper';
 import model from '../models/';
+
 
 require('dotenv').config();
 
@@ -18,12 +21,14 @@ const searchController = {
    */
   searchUsers(request, response) {
     if (!request.query.q) {
-      return response.send({
+      return response.status(400).send({
         message: 'No key word supplied'
       });
     }
-    if (getRole.isAdmin(request)) {
-      return User
+    if (!RoleHelper.isAdmin(request)) {
+      return UserHelper.AccessDenied(response);
+    }
+    return User
             .findAll({
               where: {
                 $or: [
@@ -38,18 +43,10 @@ const searchController = {
               attributes: ['id', 'email', 'username', 'roleId', 'createdAt']
             })
             .then((user) => {
-              if (user.length === 0) {
-                return response.status(404).send({
-                  message: 'User does not exist',
-                });
-              }
+              UserHelper.UserNotFound(response, user);
               return response.status(200).send(user);
             })
-             .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving Users' }));
-    }
-    return response.status(401).send({
-      message: 'Access Denied'
-    });
+             .catch(error => UserHelper.SearchDatabaseError(response, error));
   },
     /**
    * searchDocument: This allows registered users get documents by search key
@@ -64,11 +61,11 @@ const searchController = {
    */
   searchDocument(request, response) {
     if (!request.query.q) {
-      return response.send({
+      return response.status(400).send({
         message: 'No key word supplied'
       });
     }
-    if (getRole.isAdmin(request) || getRole.Editor(request)) {
+    if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
       return Documents
             .findAll({
               where: {
@@ -82,35 +79,28 @@ const searchController = {
               attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
             })
             .then((document) => {
-              if (document.length === 0) {
-                return response.status(404).send({
-                  message: 'Document Not Found',
-                });
-              }
+              DocumentHelper.DocumentNotFound(response, document);
               return response.status(200).send(document);
             })
-            .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents' }));
+            .catch(error => DocumentHelper.SearchDatabaseError(response, error));
     }
     return Documents
           .findAll({
             where: {
-              userId: request.decoded.userId,
               title: {
                 $iLike: `%${request.query.q}%`.toLowerCase()
               },
-              access: [request.decoded.userRole, 'private', 'public'],
+              $or: [{ access: 'public' }, { access: 'role',
+                $and: { roleId: request.decoded.userRole } }, { access: 'private',
+                  $and: { userId: request.decoded.userId } }]
             },
             attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
           })
           .then((document) => {
-            if (document.length === 0) {
-              return response.status(404).send({
-                message: 'Document Not Found',
-              });
-            }
+            DocumentHelper.DocumentNotFound(response, document);
             return response.status(200).send(document);
           })
-           .catch(error => response.status(400).send({ error, message: 'Error occurred while retrieving documents' }));
+           .catch(error => DocumentHelper.SearchDatabaseError(response, error));
   },
 
 };

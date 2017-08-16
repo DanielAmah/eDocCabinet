@@ -7,10 +7,7 @@ import injectModules from 'gulp-inject-modules';
 import exit from 'gulp-exit';
 import coveralls from 'gulp-coveralls';
 
-
-
 process.env.NODE_ENV = 'test';
-
 const jasmineNodeOpts = {
   timeout: 200000,
   includeStackTrace: false,
@@ -54,7 +51,7 @@ gulp.task('coverage', (cb) => {
       .pipe(injectModules())
       .pipe(jasmineNode())
       .pipe(istanbul.writeReports())
-      .pipe(istanbul.enforceThresholds({ thresholds: { global: 20 } }))
+      .pipe(istanbul.enforceThresholds({ thresholds: { global: 10 } }))
       .on('end', cb)
       .pipe(exit());
     });

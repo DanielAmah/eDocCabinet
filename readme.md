@@ -3,10 +3,9 @@
 [![Code Climate](https://codeclimate.com/github/DanielAmah/eDocCabinet/badges/gpa.svg)](https://codeclimate.com/github/DanielAmah/eDocCabinet)
 [![Issue Count](https://codeclimate.com/github/DanielAmah/eDocCabinet/badges/issue_count.svg)](https://codeclimate.com/github/DanielAmah/eDocCabinet)
 <img src="https://camo.githubusercontent.com/23ee7a697b291798079e258bbc25434c4fac4f8b/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f50726f7465637465645f62792d486f756e642d6138373364312e737667" alt="" data-canonical-src="https://img.shields.io/badge/Protected_by-Hound-a873d1.svg" style="max-width:100%;">
-# EDocCabinet
-### A Document Management API
+# EDocCabinet - Document Management API
 
-Document Management System provides an interface for users to create and manage documents, it uses JWT as its authentication mechanism.
+EDocCabinet - document management API provides an interface for users to create and manage documents, it uses JWT as its authentication mechanism.
 
 ## Technologies Used
 - JavaScript (ES6)
@@ -15,8 +14,7 @@ Document Management System provides an interface for users to create and manage 
 - Postgresql 
 - Sequelize ORM.  
 
-## Local Development
-### Prerequisites includes
+## Prerequisites
 - [Postgresql](https://www.postgresql.org/) and
 -  [Node.js](http://nodejs.org/) >= v6.8.0.
 
@@ -48,20 +46,20 @@ Document Management System provides an interface for users to create and manage 
 +  **[gulp-nodemon](https://www.npmjs.com/package/gulp-nodemon)** - it's gulp + nodemon + convenience
 +  **[supertest](https://www.npmjs.com/package/supertest)** - HTTP assertions made easy via superagent.
 
-### Installation and Setup
+## Installation and Setup
 1. Clone this repository from a terminal `git clone https://github.com/DanielAmah/eDocCabinet.git`.
 1. Move into the project directory `cd eDocCabinet`
 1. Install project dependencies `npm install`
 1. Create Postgresql database and run migrations `npm run migrate`.
 1. Populate database with data `npm run seed`.
 1. Start the express server `npm start`.
-1. Run test `npm test-server`.
+1. Run test `npm test`.
 
-### Postman Collection
+## Postman Collection
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/6733658ab0d5e0f6e2fc)
 
-# API Documentation
-The API has routes, each dedicated to a single task that uses HTTP response codes to indicate request success or errors.
+## API Documentation
+The API has routes, each dedicated to a single task that uses HTTP response codes to indicate request success or errors. The full document can be found [here](https://edoccabinet.herokuapp.com) 
 
 ## Authentication
 Users are assigned a token when signup or signin. This token is then used for subsequent HTTP requests to the API for authentication and should be sent as one of the header values.
@@ -94,22 +92,7 @@ GET /api/v1/documents/page/?limit={integer}&offset={integer} | Pagination for do
 
 ## How to contribute
 
-1. Fork the project
-
-1. Create a branch from the base branch.
-
-1. Make some commits to improve the project.
-
-1. Push this branch to your GitHub project.
-
-1. Open a Pull Request on GitHub.
-
-1. Discuss, and optionally continue committing.
-
-1. The project owner merges or closes the Pull Request.
-
-## API Documentation
-The API documentation is found homepage of the hosted API https://edoccabinet.herokuapp.com
+Please see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## FAQs and Issues
 
@@ -124,16 +107,16 @@ No, its free for everyone.
 
 You need to request a resource from one of the endpoints using HTTPS. Generally, reading any data is done through a request with GET method. If you want our server to create, update or delete a given resource, POST or PUT methods are required.
 
-## What return formats do you support?
+### What return formats do you support?
 
 eDocCabinet API currently returns data in ```JSON``` format.
 
-## What kind of authentication is required?
+### What kind of authentication is required?
 
 All endpints except login and signup are protected. Users requre ```token``` to access all protected endpoints. ```Token``` is sent to client after successful signup and login. Token must be set as authorization in the ```http request header``` to access the protected routes
 
 
-# Limitations
+## Limitations
 The application uses shared database package, this may lead to slow in response at some point. It also has query limit per day, once exceeded client won't get any response till the next day.
 
 ## License
