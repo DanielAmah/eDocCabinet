@@ -215,7 +215,6 @@
          models.Users.create(adminUser).then(() => {
            done();
          });
-         done();
        });
        it('should return a message \'User not found\' if no user found to retrieve', (done) => {
          request.get('/api/v1/users/10')
