@@ -27,15 +27,25 @@ const UserController = {
     if (errors) {
       response.status(400).send(UserHelper.ValidationErrorMessage(errors));
     } else {
-      const password = bcrypt.hashSync(request.body.password, bcrypt.genSaltSync(10));
+      const password = bcrypt.hashSync(request.body.password,
+       bcrypt.genSaltSync(10));
       return Users
      .findOne({
        where: {
-         email: request.body.email
+         $or: [
+           {
+             email: request.body.email
+           },
+           {
+             username: request.body.username
+           },
+         ]
        }
      })
       .then((checkuser) => {
-        UserHelper.IfEmailExists(checkuser, response);
+        if (checkuser) {
+          return UserHelper.IfEmailExists(response);
+        }
         Users
       .create({
         email: request.body.email.toLowerCase(),
@@ -57,9 +67,12 @@ const UserController = {
    * query parameters are offset and limit
    * default offset is 0 and default limit is 10
    * @function listUsers
-   * @param {object} request send a request to list all registered users in the database
-   * @param {object} response get a response if retrieving users is successful or not
-   * @return {object}  returns response status and json data of all registered users
+   * @param {object} request send a request to list all
+   * registered users in the database
+   * @param {object} response get a response if retrieving
+   *  users is successful or not
+   * @return {object}  returns response status and json data
+   *  of all registered users
    */
    /**
    * getUserPage: Enables users to get list of registered users by page
@@ -69,6 +82,12 @@ const UserController = {
    * @return {object}  returns response status and json data
    */
   listUsers(request, response) {
+    if (isNaN(PageHelper.GetLimit(request)) ||
+     isNaN(PageHelper.GetOffset(request))) {
+      return response.status(400).send({
+        message: 'limit and offset must be an number'
+      });
+    }
     if (!RoleHelper.isAdmin(request)) {
       return UserHelper.AccessDenied(response);
     }
@@ -80,20 +99,30 @@ const UserController = {
             })
             .then((users) => {
               const meta =
-                PageHelper.GetPageMeta(request, users, PageHelper.GetLimit, PageHelper.GetOffset);
+                PageHelper.GetPageMeta(request, users,
+                 PageHelper.GetLimit, PageHelper.GetOffset);
               const userlist = users.rows;
               response.status(200).send({ userlist, meta });
             })
              .catch(error => UserHelper.ListDatabaseError(response, error));
   },
      /**
-   * listUsersAndDocuments: Enables users to get list of registered users with there documents
+   * listUsersAndDocuments: Enables users to get list of
+   *  registered users with there documents
    * @function listUsersAndDocuments
-   * @param {object} request send a request to retrieve list of users and documents
-   * @param {object} response get a response of all users and documents or throws an error.
+   * @param {object} request send a request to retrieve list
+   *  of users and documents
+   * @param {object} response get a response of all users
+   *  and documents or throws an error.
    * @return {object}  returns response status and json data
    */
   listUsersAndDocuments(request, response) {
+    if (isNaN(PageHelper.GetLimit(request)) ||
+     isNaN(PageHelper.GetOffset(request))) {
+      return response.status(400).send({
+        message: 'limit and offset must be an number'
+      });
+    }
     if (!RoleHelper.isAdmin(request)) {
       return UserHelper.UserAndDocumentAccessDenied(response);
     }
@@ -109,19 +138,22 @@ const UserController = {
         })
         .then((users) => {
           const meta =
-                PageHelper.GetPageMeta(request, users, PageHelper.GetLimit, PageHelper.GetOffset);
+                PageHelper.GetPageMeta(request, users,
+                 PageHelper.GetLimit, PageHelper.GetOffset);
           const userlist = users.rows;
           response.status(200).send(
           { userlist, meta });
         })
-       .catch(error => UserHelper.ListUserAndDocumentDatabaseError(response, error));
+       .catch(error => UserHelper.ListUserAndDocumentDatabaseError(
+         response, error));
   },
     /**
    * updateUser: Enables users to update their information
    *  where email must be unique
    * @function updateUser
    * @param {object} request send a request to update users
-   * @param {object} response receives response if update is successful or it threw an error
+   * @param {object} response receives response if
+   *  update is successful or it threw an error
    * @return {object}  returns response status and json data
    */
   updateUsers(request, response) {
@@ -136,16 +168,33 @@ const UserController = {
       if (!(RoleHelper.isSubscriber(request) || RoleHelper.isAdmin(request))) {
         return UserHelper.UpdateAccessDenied(response);
       }
-      Users.find({
-        where: {
-          $or: [
-            {
-              id: request.params.userId
-            }
-          ]
-        }
-      });
-      return Users.findById(request.params.userId)
+      return Users
+     .findOne({
+       where: {
+         $or: [
+           {
+             email: request.body.email
+           },
+           {
+             username: request.body.username
+           },
+         ]
+       }
+     })
+     .then((checkuser) => {
+       if (checkuser) {
+         return UserHelper.IfEmailExists(response);
+       }
+       Users.find({
+         where: {
+           $or: [
+             {
+               id: request.params.userId
+             }
+           ]
+         }
+       });
+       return Users.findById(request.params.userId)
                   .then((user) => {
                     if (!user) {
                       UserHelper.UserNotFound(response);
@@ -166,13 +215,15 @@ const UserController = {
                       }));
                   })
               .catch(error => UserHelper.UpdateDatabaseError(response, error));
+     });
     }
   },
    /**
    * updateUsersRole: Enables admin to update users role
    * @function updateUsersRole
    * @param {object} request send a request to update users role
-   * @param {object} response receives response if update is successful or it threw an error
+   * @param {object} response receives response if update
+   *  is successful or it threw an error
    * @return {object}  returns response status and json data
    */
   updateUsersRole(request, response) {
@@ -185,16 +236,30 @@ const UserController = {
       if (!RoleHelper.isAdmin(request)) {
         return UserHelper.UpdateAccessDenied(response);
       }
-      Users.find({
-        where: {
-          $or: [
-            {
-              id: request.params.userId
-            }
-          ]
-        }
-      });
-      return Users.findById(request.params.userId)
+      return Users
+     .findOne({
+       where: {
+         $or: [
+           {
+             title: request.body.title
+           }
+         ]
+       }
+     })
+     .then((checkrole) => {
+       if (checkrole) {
+         return UserHelper.IfRoleExists(response);
+       }
+       Users.find({
+         where: {
+           $or: [
+             {
+               id: request.params.userId
+             }
+           ]
+         }
+       });
+       return Users.findById(request.params.userId)
                   .then((user) => {
                     if (!user) {
                       UserHelper.UserNotFound(response);
@@ -208,15 +273,19 @@ const UserController = {
                         role: user.roleId
                       }));
                   })
-              .catch(error => UserHelper.UpdateRoleDatabaseError(response, error));
+              .catch(error => UserHelper.UpdateRoleDatabaseError(
+                response, error));
+     });
     }
   },
   /**
    * findUsers: Enables users to find other registered users
    * @function findUser
-   * @param {object} request send request to find a registered user from the database.
+   * @param {object} request send request to find a
+   *  registered user from the database.
    * @param {object} response get a response of a user from the database
-   * @return {object}  returns response status and json data of the user retrieved
+   * @return {object}  returns response status and
+   *  json data of the user retrieved
    */
   findUsers(request, response) {
     if (!Number.isInteger(Number(request.params.userId))) {
@@ -243,8 +312,10 @@ const UserController = {
     /**
    * deleteUsers: Enables users and admin users to delete account by ID
    * @function deleteUser
-   * @param {object} request sends a request to delete users from the user's database
-   * @param {object} response get a response of delete successful or throw an error
+   * @param {object} request sends a request to delete
+   *  users from the user's database
+   * @param {object} response get a response of delete
+   *  successful or throw an error
    * @return {object}  returns response status and json data
    */
   deleteUsers(request, response) {
@@ -286,7 +357,8 @@ const UserController = {
               where: {
                 userId: request.params.userId,
               },
-              attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
+              attributes: ['id', 'title', 'access',
+                'content', 'owner', 'createdAt']
             })
             .then((documents) => {
               if (!documents) {
@@ -294,7 +366,8 @@ const UserController = {
               }
               return response.status(200).send(documents);
             })
-             .catch(error => UserHelper.FindUserDocDatabaseError(response, error));
+             .catch(error => UserHelper.FindUserDocDatabaseError(
+               response, error));
   },
 };
 

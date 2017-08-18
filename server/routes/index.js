@@ -34,7 +34,8 @@ const Routes = (app) => {
   app.put('/api/v1/documents/:documentId', DocumentController.updateDocument);
   app.get('/api/v1/documents/:documentId', DocumentController.findDocument);
   app.get('/api/v1/search/documents/', SearchController.searchDocument);
-  app.delete('/api/v1/documents/:documentId', DocumentController.deleteDocument);
+  app.delete('/api/v1/documents/:documentId',
+   DocumentController.deleteDocument);
 
   // all Role routes
   app.post('/api/v1/roles/', RoleController.newRole);

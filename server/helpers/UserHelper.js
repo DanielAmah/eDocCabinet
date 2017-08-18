@@ -115,10 +115,13 @@ const UserHelper = {
       request.body.email = (request.body.email).toLowerCase();
     }
   },
-  IfEmailExists(checkuser, response) {
-    if (checkuser) {
-      return response.status(409).send({ message: 'User Already Exists' });
-    }
+  IfEmailExists(response) {
+    return response.status(409).send({
+      message: 'Username / Email Already Exists' });
+  },
+  IfRoleExists(response) {
+    return response.status(409).send({
+      message: 'Role Already Exists' });
   },
   CheckQuery(response) {
     response.status(400).send({
@@ -126,17 +129,23 @@ const UserHelper = {
     });
   },
   Validation(request) {
-    request.checkBody('email', 'Enter a valid email address (someone@organization.com)').isEmail();
-    request.checkBody('username', 'Enter a valid username of more than 5 characters').isLength({ min: 5 });
-    request.checkBody('password', 'Enter a valid password of more than 5 characters').isLength({ min: 5 });
+    request.checkBody('email',
+     'Enter a valid email address (someone@organization.com)').isEmail();
+    request.checkBody('username',
+     'Enter a valid username of more than 5 characters').isLength({ min: 5 });
+    request.checkBody('password',
+     'Enter a valid password of more than 5 characters').isLength({ min: 5 });
   },
   LoginValidation(request) {
-    request.checkBody('username', 'Enter a valid username of more than 5 characters').isLength({ min: 5 });
-    request.checkBody('password', 'Enter a valid password of more than 5 characters').isLength({ min: 5 });
+    request.checkBody('username',
+     'Enter a valid username of more than 5 characters').isLength({ min: 5 });
+    request.checkBody('password',
+     'Enter a valid password of more than 5 characters').isLength({ min: 5 });
   },
   RoleValidation(request) {
     request.checkBody('roleId', 'Enter a valid role id').isInt();
-    request.checkParams('userId', 'Enter a valid user id to update role').notEmpty().isInt();
+    request.checkParams('userId',
+     'Enter a valid user id to update role').notEmpty().isInt();
   },
   ValidationErrorMessage(errors) {
     const exclude = ['param', 'value'];

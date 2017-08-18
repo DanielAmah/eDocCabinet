@@ -61,7 +61,8 @@
         done();
       });
      });
-     it('should return a message "user not found" if user not found', (done) => {
+     it('should return a message "user not found" if' +
+      'user not found', (done) => {
        request.post('/api/v1/users/login')
         .send(specWrongUser)
         .end((err, response) => {
@@ -79,6 +80,19 @@
         .end((err, response) => {
           expect(response.status).to.equal(403);
           expect(response.body.message).to.equal('Password is incorrect');
+          done();
+        });
+     });
+     it('should not log a user in without a password', (done) => {
+       request.post('/api/v1/users/login')
+        .send({
+          username: adminUser.username,
+          password: ''
+        })
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body[0].msg).to.equal(
+            'Enter a valid password of more than 5 characters');
           done();
         });
      });

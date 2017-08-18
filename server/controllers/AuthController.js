@@ -31,7 +31,8 @@ const authController = {
         }
       }).then((user) => {
         if (user) {
-          const passkey = bcrypt.compareSync(request.body.password, user.password);
+          const passkey =
+          bcrypt.compareSync(request.body.password, user.password);
           if (!passkey) {
             return UserHelper.InCorrectPassword(response);
           }

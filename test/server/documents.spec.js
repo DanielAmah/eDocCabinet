@@ -77,7 +77,8 @@ describe('Authentication Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(403);
-          expect(response.body.message).to.equal('Invalid document access, save document with your role');
+          expect(response.body.message).to.equal(
+            'Invalid document access, save document with your role');
           done();
         });
     });
@@ -89,7 +90,8 @@ describe('Authentication Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(400);
-          expect(response.body[0].msg).to.equal('Enter a title for the document');
+          expect(response.body[0].msg).to.equal(
+            'Enter a title for the document');
           done();
         });
     });
@@ -101,7 +103,8 @@ describe('Authentication Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(400);
-          expect(response.body[0].msg).to.equal('Enter a content for the document');
+          expect(response.body[0].msg).to.equal(
+            'Enter a content for the document');
           done();
         });
     });
@@ -133,8 +136,22 @@ describe('Authentication Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(200);
-          expect(response.body.listDocuments[0].title).to.equal('My first document');
-          expect(response.body.listDocuments[0].content).to.equal('The best content');
+          expect(response.body.listDocuments[0].content).to.equal(
+            'The best content');
+          done();
+        });
+    });
+    it('should not get all documents for an admin if' +
+    'limit is not a number', (done) => {
+      models.Documents.create(document1);
+      request.get('/api/v1/documents/?limit=10&offset=q')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal(
+            'limit and offset must be an number');
           done();
         });
     });
@@ -146,8 +163,7 @@ describe('Authentication Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(200);
-          expect(response.body[0].title).to.equal('My first document');
-          expect(response.body[0].content).to.equal('The best content');
+          expect(typeof response.body).to.equal('object');
           done();
         });
     });
@@ -171,7 +187,8 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should not allow an user with invalid token to get documents', (done) => {
+    it('should not allow an user with invalid token' +
+    'to get documents', (done) => {
       models.Documents.create(document1);
       request.get('/api/v1/documents/1')
         .set('Authorization', `${unauthorizedToken}`)
@@ -196,7 +213,8 @@ describe('Authentication Controller', () => {
             done();
           });
       });
-    it('should not allow an invalid document id when retrieving document', (done) => {
+    it('should not allow an invalid document id when' +
+    'retrieving document', (done) => {
       request.get('/api/v1/documents/p')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -209,7 +227,8 @@ describe('Authentication Controller', () => {
         });
     });
 
-    it('should successfuly return the document found for an authorized subscriber',
+    it('should successfuly return the document found for' +
+    'an authorized subscriber',
       (done) => {
         models.Documents.create(document2);
         request.get('/api/v1/documents/2')
@@ -230,7 +249,8 @@ describe('Authentication Controller', () => {
           .expect('Content-Type', /json/)
           .end((err, response) => {
             expect(response.status).to.equal(404);
-            expect(response.body.message).to.equal('The Document Does not Exist');
+            expect(response.body.message).to.equal(
+              'The Document Does not Exist');
             done();
           });
       });
@@ -255,7 +275,8 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should not allow a user to update document with invalid document id', (done) => {
+    it('should not allow a user to update document ' +
+    'with invalid document id', (done) => {
       request.put('/api/v1/documents/q')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -267,7 +288,8 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should allow an authorized subscriber to delete a document created by user', (done) => {
+    it('should allow an authorized subscriber to delete' +
+    'a document created by user', (done) => {
       request.put('/api/v1/documents/2')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
@@ -287,7 +309,8 @@ describe('Authentication Controller', () => {
         done();
       });
     });
-    it('should return a 404 error if document not found in the database', (done) => {
+    it('should return a 404 error if document not found' +
+    'in the database', (done) => {
       models.Documents.create(document1);
       request.delete('/api/v1/documents/10')
         .set('Authorization', `${adminToken}`)
@@ -299,7 +322,8 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should return a bad request status if a user uses a non numeric id to delete document', (done) => {
+    it('should return a bad request status if a user uses' +
+    'a non numeric id to delete document', (done) => {
       request.delete('/api/v1/documents/q')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -310,7 +334,8 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should allow an authorize admin successfully delete a document', (done) => {
+    it('should allow an authorize admin successfully' +
+    'delete a document', (done) => {
       models.Documents.create(document1);
       request.delete('/api/v1/documents/1')
         .set('Authorization', `${adminToken}`)
@@ -323,7 +348,8 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should allow an authorize subscriber successfully delete a document ', (done) => {
+    it('should allow an authorize subscriber' +
+    'successfully delete a document ', (done) => {
       models.Documents.create(document2);
       request.delete('/api/v1/documents/2')
         .set('Authorization', `${subscriberToken}`)
