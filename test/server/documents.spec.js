@@ -141,7 +141,8 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should not get all documents for an admin if limit is not a number', (done) => {
+    it('should not get all documents for an admin if' +
+    'limit is not a number', (done) => {
       models.Documents.create(document1);
       request.get('/api/v1/documents/?limit=10&offset=q')
         .set('Authorization', `${adminToken}`)
