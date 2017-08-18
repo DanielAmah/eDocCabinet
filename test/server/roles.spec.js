@@ -90,7 +90,7 @@ describe('Role Controller', () => {
           done();
         });
     });
-    it('should successfully create a new role with admin access', (done) => {
+    it('should not successfully create a new role if no title', (done) => {
       request.post('/api/v1/roles/')
         .send({
           title: ''
@@ -114,7 +114,8 @@ describe('Role Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(401);
-          expect(response.body.message).to.equal('Access Denied. You can not create a new role');
+          expect(response.body.message).to.equal(
+            'Access Denied. You can not create a new role');
           done();
         });
     });
@@ -156,7 +157,8 @@ describe('Role Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(401);
-          expect(response.body.message).to.equal('Access Denied. You can not create a new role');
+          expect(response.body.message).to.equal(
+            'Access Denied. You can not create a new role');
           done();
         });
     });
@@ -178,7 +180,8 @@ describe('Role Controller', () => {
       });
     });
 
-    it('should successfully get all roles and users with admin access', (done) => {
+    it('should successfully get all roles and users with' +
+    'admin access', (done) => {
       request.get('/api/v1/roles-users/')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -191,14 +194,16 @@ describe('Role Controller', () => {
           done();
         });
     });
-    it('should not successfully get all roles and users with subscriber access', (done) => {
+    it('should not successfully get all roles and users' +
+    'with subscriber access', (done) => {
       request.get('/api/v1/roles-users/')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(401);
-          expect(response.body.message).to.equal('Access Denied. You can not create a new role');
+          expect(response.body.message).to.equal(
+            'Access Denied. You can not create a new role');
           done();
         });
     });

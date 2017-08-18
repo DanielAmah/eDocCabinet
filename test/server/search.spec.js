@@ -64,7 +64,8 @@ describe('Search Controller', () => {
       });
       done();
     });
-    it('should display the message "User not found" when no user is found', (done) => {
+    it('should display the message "User not found" when' +
+    'no user is found', (done) => {
       request.get('/api/v1/search/users?q=antony')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -82,11 +83,13 @@ describe('Search Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(401);
-          expect(response.body.message).to.equal('Access Denied. You can not see register subscribers');
+          expect(response.body.message).to.equal(
+            'Access Denied. You can not see register subscribers');
           done();
         });
     });
-    it('should display message " no key word supplied " if no search term is used', (done) => {
+    it('should display message " no key word supplied " if' +
+    'no search term is used', (done) => {
       request.get('/api/v1/search/users')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -128,7 +131,8 @@ describe('Search Controller', () => {
             done();
           });
       });
-    it('should display message "no key word supplied" if no search term is used',
+    it('should display message "no key word supplied" if' +
+    'no search term is used',
       (done) => {
         request.get('/api/v1/search/documents/')
           .set('Authorization', `${adminToken}`)
@@ -140,7 +144,8 @@ describe('Search Controller', () => {
             done();
           });
       });
-    it('should return "No document found" if no document found for subscriber', (done) => {
+    it('should return "No document found" if no document' +
+    'found for subscriber', (done) => {
       request.get('/api/v1/search/documents?q=title')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')

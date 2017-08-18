@@ -56,7 +56,8 @@ const searchController = {
    * @function searchDocument
    * @param {object} request send a request that queries the document database
    * and search for documents
-   * @param {object} response get a response of queried documents or throws an error
+   * @param {object} response get a response
+   * of queried documents or throws an error
    * @return {object} - returns response status and json data
    */
   searchDocument(request, response) {
@@ -76,13 +77,15 @@ const searchController = {
                   }
                 ]
               },
-              attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
+              attributes: ['id', 'title', 'access',
+                'content', 'owner', 'createdAt']
             })
             .then((document) => {
               DocumentHelper.DocumentNotFound(response, document);
               return response.status(200).send(document);
             })
-            .catch(error => DocumentHelper.SearchDatabaseError(response, error));
+            .catch(error => DocumentHelper.SearchDatabaseError(
+              response, error));
     }
     return Documents
           .findAll({
@@ -91,10 +94,12 @@ const searchController = {
                 $iLike: `%${request.query.q}%`.toLowerCase()
               },
               $or: [{ access: 'public' }, { access: 'role',
-                $and: { roleId: request.decoded.userRole } }, { access: 'private',
+                $and: { roleId: request.decoded.userRole } }, {
+                  access: 'private',
                   $and: { userId: request.decoded.userId } }]
             },
-            attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
+            attributes: ['id', 'title', 'access',
+              'content', 'owner', 'createdAt']
           })
           .then((document) => {
             DocumentHelper.DocumentNotFound(response, document);

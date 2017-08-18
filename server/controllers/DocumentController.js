@@ -33,7 +33,8 @@ const documentController = {
       })
       .then((checkdocument) => {
         if (checkdocument) {
-          return response.status(409).send({ message: 'A document with this title has been created' });
+          return response.status(409).send({
+            message: 'A document with this title has been created' });
         }
         Documents
             .create({
@@ -49,15 +50,18 @@ const documentController = {
               owner: newDocument.owner,
               message: 'Document created successfully'
             }))
-             .catch(error => DocumentHelper.CreateDatabaseError(response, error));
+             .catch(error =>
+             DocumentHelper.CreateDatabaseError(response, error));
       });
     }
   },
    /**
    * updateDocument: This allows registered users update saved documents
    * @function updateDocument
-   * @param {object} request sends a request to update save documents in the document table
-   * @param {object} response receive a response if the document was updated successfully
+   * @param {object} request sends a request to update
+   * save documents in the document table
+   * @param {object} response receive a response if
+   * the document was updated successfully
    * or throw an error
    * @return {object} - returns response status and json data
    */
@@ -71,6 +75,17 @@ const documentController = {
         return DocumentHelper.CheckIdIsNumber(response);
       }
       return Documents
+      .findOne({
+        where: {
+          title: request.body.title
+        }
+      })
+      .then((checkdocument) => {
+        if (checkdocument) {
+          return response.status(409).send({
+            message: 'A document with this title has been created' });
+        }
+        return Documents
       .find({
         where: {
           id: request.params.documentId,
@@ -96,6 +111,7 @@ const documentController = {
           }))
            .catch(error => DocumentHelper.UpdateDatabaseError(response, error));
       });
+      });
     }
   },
     /**
@@ -103,15 +119,24 @@ const documentController = {
    * where role = "user's role" and public documents.
    * It gets all available documents both privates and public for admin users
    * @function listDocuments
-   * @param {object} request send a request that retrieve all documents
-   * @param {object} response get a response that list all documents or throws an error.
+   * @param {object} request send a request that
+   * retrieve all documents
+   * @param {object} response get a response that
+   * list all documents or throws an error.
    * @return {object} - returns response status and json data
    */
   showDocuments(request, response) {
+    if (isNaN(PageHelper.GetLimit(request)) ||
+     isNaN(PageHelper.GetOffset(request))) {
+      return response.status(400).send({
+        message: 'limit and offset must be an number'
+      });
+    }
     if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
       return Documents
             .findAndCountAll({
-              attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
+              attributes: ['id', 'title', 'content',
+                'access', 'owner', 'createdAt'],
               limit: PageHelper.GetLimit(request),
               offset: PageHelper.GetOffset(request)
             })
@@ -129,12 +154,20 @@ const documentController = {
           .findAll({
             where: {
               $or: [{ access: 'public' }, { access: 'role',
-                $and: { roleId: request.decoded.userRole } }, { access: 'private',
+                $and: { roleId: request.decoded.userRole } },
+                { access: 'private',
                   $and: { userId: request.decoded.userId } }]
             },
-            attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
+            attributes: ['id', 'title', 'access',
+              'content', 'owner', 'createdAt']
           })
-          .then(documents => response.status(200).send(documents))
+          .then((documents) => {
+            const meta =
+                PageHelper.GetDocumentPageMeta(request, documents,
+                PageHelper.GetLimit, PageHelper.GetOffset);
+            const listDocuments = documents.rows;
+            response.status(200).send({ listDocuments, meta });
+          })
           .catch(error => DocumentHelper.ListDatabaseError(response, error));
     }
   },
@@ -143,8 +176,10 @@ const documentController = {
    * where role = "user's role" and public documents,
    * Its gets document either private or public for admin user
    * @function findDocument
-   * @param {object} request send a request to find a document in the document table
-   * @param {object} response get a response if the document is retrieve or throws an error
+   * @param {object} request send a request to find
+   *  a document in the document table
+   * @param {object} response get a response
+   * if the document is retrieve or throws an error
    * @return {object} - returns response status and json data
    */
   findDocument(request, response) {
@@ -155,7 +190,8 @@ const documentController = {
       return Documents
             .find({
               where: { id: request.params.documentId },
-              attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
+              attributes: ['id', 'title', 'access',
+                'content', 'owner', 'createdAt']
             })
             .then((document) => {
               if (!document) {
@@ -170,10 +206,12 @@ const documentController = {
             where: {
               id: request.params.documentId,
               $or: [{ access: 'public' }, { access: 'role',
-                $and: { roleId: request.decoded.userRole } }, { access: 'private',
+                $and: { roleId: request.decoded.userRole } },
+                { access: 'private',
                   $and: { userId: request.decoded.userId } }]
             },
-            attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
+            attributes: ['id', 'title', 'access',
+              'content', 'owner', 'createdAt']
           })
           .then((document) => {
             if (!document) {
@@ -189,8 +227,10 @@ const documentController = {
    * This allows registered users to delete thier documents by ID
    * Admin users can also delete user's documents with by just ID
    * @function deleteDocument
-   * @param {object} request  send a request to delete a document from the database
-   * @param {object} response get a response if deletion is successful or it throws an error
+   * @param {object} request  send a request to delete
+   * a document from the database
+   * @param {object} response get a response if deletion
+   *  is successful or it throws an error
    * @return {object} - returns response status and json data
    */
   deleteDocument(request, response) {
@@ -204,7 +244,8 @@ const documentController = {
                 id: request.params.documentId
               }
             })
-            .then(document => DocumentHelper.DeleteDocumentLogic(DocumentHelper.DocumentNotExist,
+            .then(document => DocumentHelper.DeleteDocumentLogic(
+              DocumentHelper.DocumentNotExist,
               response, DocumentHelper.DeleteDatabaseError, document));
     }
     return Documents

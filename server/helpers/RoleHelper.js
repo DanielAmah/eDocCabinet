@@ -5,7 +5,8 @@ import omit from 'omit';
 const RoleHelper = {
   /**
    * isAdmin - Verify if the requester is an admin
-   * @param  {Object} request send a request to check of the role id is 1(administrator)
+   * @param  {Object} request send a request to check
+   *  of the role id is 1(administrator)
    * @param  {Object} response get a response if it 1 or another number.
    * @returns {Boolean} returns true or false
    */
@@ -15,7 +16,8 @@ const RoleHelper = {
 
   /**
    * isEditor - Verify if the requester is an editor
-   * @param  {Object} request send a request to check of the role id is 2(editor)
+   * @param  {Object} request send a request to
+   *  check of the role id is 2(editor)
    * @param  {Object} response get a response if it 2 or another number.
    * @returns {Boolean} returns true or false
    */
@@ -54,7 +56,11 @@ const RoleHelper = {
     const error = errors.map(omit(exclude));
     const ErrorMessage = error;
     return ErrorMessage;
-  }
+  },
+  IfRoleExists(response) {
+    return response.status(409).send({
+      message: 'Role Already Exists' });
+  },
 
 };
 

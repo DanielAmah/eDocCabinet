@@ -17,7 +17,7 @@ app.use(logger('dev'));
 app.use(express.static(path.resolve(__dirname, './../public')));
 
 
-// Parse incoming requests data (https://github.com/expressjs/body-parser)
+// Parse incoming requests data
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(validator());

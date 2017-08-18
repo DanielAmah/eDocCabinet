@@ -34,7 +34,9 @@ const DocumentHelper = {
     });
   },
   ValidAccess(request) {
-    const validAccess = (request.body.access === 'public' || request.body.access === 'private' || request.body.access === 'role');
+    const validAccess = (request.body.access === 'public'
+     || request.body.access === 'private' ||
+      request.body.access === 'role');
     return validAccess;
   },
   CreateDatabaseError(response) {
@@ -67,20 +69,25 @@ const DocumentHelper = {
       message: 'Invalid Document ID'
     });
   },
-  DeleteDocumentLogic(DocumentNotExist, response, DeleteDatabaseError, document) {
+  DeleteDocumentLogic(DocumentNotExist,
+    response, DeleteDatabaseError, document) {
     if (!document) {
       return DocumentNotExist(response);
     }
     return document
                 .destroy()
                 .then(() => response.status(200)
-                  .send({ message: 'The Document has been deleted successfully.' }))
+                  .send({
+                    message: 'The Document has been deleted successfully.' }))
                  .catch(error => DeleteDatabaseError(response, error));
   },
   Validation(request) {
-    request.checkBody('title', 'Enter a title for the document').isLength({ min: 1 });
-    request.checkBody('content', 'Enter a content for the document').isLength({ min: 1 });
-    request.checkBody('access', 'Enter an access for the document').isLength({ min: 1 });
+    request.checkBody('title',
+    'Enter a title for the document').isLength({ min: 1 });
+    request.checkBody('content',
+     'Enter a content for the document').isLength({ min: 1 });
+    request.checkBody('access',
+     'Enter an access for the document').isLength({ min: 1 });
   },
   ValidationErrorMessage(errors) {
     const exclude = ['param', 'value'];

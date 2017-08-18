@@ -65,7 +65,7 @@
      it('should be able to create an admin user', (done) => {
        request.post('/api/v1/users/')
         .send(adminUser)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(201);
           expect(typeof response.body).to.equal('object');
           expect(response.body.newUser.userEmail).to.equal('admin@admin.com');
@@ -76,7 +76,7 @@
      it('should be able to create a subscriber user', (done) => {
        request.post('/api/v1/users/')
         .send(subscriberUser)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(201);
           expect(typeof response.body).to.equal('object');
           expect(response.body.newUser.userEmail).to.equal('daniel@daniel.com');
@@ -87,27 +87,30 @@
      it('should not create a user with an invalid email', (done) => {
        request.post('/api/v1/users/')
         .send(specWrongEmail)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(400);
-          expect(response.body[0].msg).to.equal('Enter a valid email address (someone@organization.com)');
+          expect(response.body[0].msg).to.equal(
+            'Enter a valid email address (someone@organization.com)');
           done();
         });
      });
      it('should not create a user with an empty email', (done) => {
        request.post('/api/v1/users/')
         .send(invalidUser)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(400);
-          expect(response.body[0].msg).to.equal('Enter a valid email address (someone@organization.com)');
+          expect(response.body[0].msg).to.equal(
+            'Enter a valid email address (someone@organization.com)');
           done();
         });
      });
      it('should not create a user with an empty password', (done) => {
        request.post('/api/v1/users/')
         .send(specNoPassword)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(400);
-          expect(response.body[0].msg).to.equal('Enter a valid password of more than 5 characters');
+          expect(response.body[0].msg).to.equal(
+            'Enter a valid password of more than 5 characters');
           done();
         });
      });
@@ -117,9 +120,10 @@
       );
        request.post('/api/v1/users/')
         .send(adminUser)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(409);
-          expect(response.body.message).to.equal('User Already Exists');
+          expect(response.body.message).to.equal(
+            'Username / Email Already Exists');
           done();
         });
      });
@@ -135,7 +139,7 @@
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(200);
           expect(typeof response.body).to.equal('object');
           done();
@@ -146,12 +150,12 @@
            done();
          });
        });
-       it('should successfully get all users', (done) => {
+       it('should successfully get all users with admin access', (done) => {
          request.get('/api/v1/users/')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(200);
           expect(response.body.meta.page).to.equal(1);
           expect(response.body.meta.pageCount).to.equal(1);
@@ -165,10 +169,23 @@
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
-        .end((err, response) => {
+        .end((error, response) => {
           expect(response.status).to.equal(401);
           expect(response.body.message).to.equal(
-            'Access Denied. You can not see register subscribers');
+           'Access Denied. You can not see register subscribers');
+          done();
+        });
+       });
+       it('should not allow admin to get all users if limit' +
+           'and offset are not numbers', (done) => {
+         request.get('/api/v1/users/?limit=q&offset=0')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(400);
+          expect(response.body.message).to.equal(
+           'limit and offset must be an number');
           done();
         });
        });
@@ -185,7 +202,8 @@
           done();
         });
        });
-       it('should successfully list all users and documents on admin access', (done) => {
+       it('should successfully list all users and' +
+       'documents on admin access', (done) => {
          request.get('/api/v1/users-docs/?limit=1&offset=0')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -198,14 +216,16 @@
           done();
         });
        });
-       it('should not successfully list all users and documents on subscriber access', (done) => {
+       it('should not successfully list all users' +
+       'and documents on subscriber access', (done) => {
          request.get('/api/v1/users-docs/')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(401);
-          expect(response.body.message).to.equal('Access Denied. You can not see subscribers and their documents');
+          expect(response.body.message).to.equal(
+           'Access Denied. You can not see subscribers and their documents');
           done();
         });
        });
@@ -216,7 +236,8 @@
            done();
          });
        });
-       it('should return a message \'User not found\' if no user found to retrieve', (done) => {
+       it('should return a message \'User not found\' if ' +
+       'no user found to retrieve', (done) => {
          request.get('/api/v1/users/10')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -239,14 +260,16 @@
           done();
         });
        });
-       it('should not successfuly return if it is a subscriber access', (done) => {
+       it('should not successfuly return if it is ' +
+       'a subscriber access', (done) => {
          request.get('/api/v1/users/1')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(401);
-          expect(response.body.message).to.equal('Access Denied. You can not find other register subscribers');
+          expect(response.body.message).to.equal(
+          'Access Denied. You can not find other register subscribers');
           done();
         });
        });
@@ -293,7 +316,8 @@
           done();
         });
        });
-       it('should not other a subscriber to update someone\'s account', (done) => {
+       it('should not other a subscriber to update' +
+       'someone\'s account', (done) => {
          request.put('/api/v1/users/1')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
@@ -301,11 +325,13 @@
         .send(specUpdateUser)
         .end((err, response) => {
           expect(response.status).to.equal(401);
-          expect(response.body.message).to.equal('Access Denied. You can not update other register subscribers');
+          expect(response.body.message).to.equal(
+            'Access Denied. You can not update other register subscribers');
           done();
         });
        });
-       it('should not update a user role with a wrong used id parameter', (done) => {
+       it('should not update a user role with a wrong' +
+       'used id parameter', (done) => {
          request.put('/api/v1/users-role/q')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -319,6 +345,7 @@
        });
 
        it('should not update a user role without a role id', (done) => {
+         models.Users.create(subscriberUser);
          request.put('/api/v1/users-role/1')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -327,19 +354,6 @@
         .end((err, response) => {
           expect(response.status).to.equal(400);
           expect(response.body[0].msg).to.equal('Enter a valid role id');
-          done();
-        });
-       });
-
-       it('should not update a user role without a role id', (done) => {
-         request.put('/api/v1/users-role/1')
-        .set('Authorization', `${adminToken}`)
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
-        .send({ roleId: 2 })
-        .end((err, response) => {
-          expect(response.status).to.equal(200);
-          expect(typeof response.body).to.equal('object');
           done();
         });
        });
@@ -404,7 +418,8 @@
           done();
         });
        });
-       it('should not successfully delete a user if id is not a number', (done) => {
+       it('should not successfully delete a user if' +
+       'id is not a number', (done) => {
          request.delete('/api/v1/users/q')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -449,7 +464,8 @@
           done();
         });
        });
-       it('should not successfully return all documents of a user if with an invalid id', (done) => {
+       it('should not successfully return all documents' +
+       'of a user with an invalid id', (done) => {
          models.Documents.create(
       document1
       );
@@ -463,7 +479,8 @@
           done();
         });
        });
-       it('should not successfully return all documents of a different user without authorization', (done) => {
+       it('should not successfully return all documents of a' +
+       'different user without authorization', (done) => {
          models.Documents.create(
       document1
       );
@@ -473,7 +490,8 @@
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(401);
-          expect(response.body.message).to.equal('Access Denied. You can not see documents of other subscribers');
+          expect(response.body.message).to.equal('Access Denied.' +
+          ' You can not see documents of other subscribers');
           done();
         });
        });

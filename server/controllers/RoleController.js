@@ -11,7 +11,8 @@ const roleController = {
    *  newRole: This allows admin to create a new role
    * @function newRole
    * @param {object} request sends a request to create a new role as an admin
-   * @param {object} response get a response if role is created successfully or throws an error
+   * @param {object} response get a response if
+   * role is created successfully or throws an error
    * @return {object} - returns response status and json data
    */
   newRole(request, response) {
@@ -24,6 +25,16 @@ const roleController = {
         return RoleHelper.AccessDenied(response);
       }
       return Roles
+        .findOne({
+          where: {
+            title: request.body.title
+          }
+        })
+      .then((checkuser) => {
+        if (checkuser) {
+          return RoleHelper.IfRoleExists(response);
+        }
+        return Roles
             .create({
               title: (request.body.title).toLowerCase(),
             })
@@ -31,6 +42,7 @@ const roleController = {
               message: 'Roles created successfully'
             }))
               .catch(error => RoleHelper.DatabaseError(response, error));
+      });
     }
   },
 
@@ -38,8 +50,10 @@ const roleController = {
   /**
    * listRoles: This allows admin to list all roles
    * @function  listRoles
-   * @param {object} request sends a request to list all roles from the role table
-   * @param {object} response get a response of all roles in the role table or throw an error
+   * @param {object} request sends a request to
+   * list all roles from the role table
+   * @param {object} response get a response of
+   *  all roles in the role table or throw an error
    * @return {object} - returns response status and json data
    */
   listRoles(request, response) {
@@ -57,8 +71,10 @@ const roleController = {
       /**
    * listRolesAndUsers: This allows admin to list all roles
    * @function  listRolesAndUsers
-   * @param {object} request request send a request to list all roles and users from the role table
-   * @param {object} response get a response of all roles and users from the role table
+   * @param {object} request request send a request
+   * to list all roles and users from the role table
+   * @param {object} response get a response of all
+   *  roles and users from the role table
    * @return {object} - returns response status and json data
    */
 
@@ -75,7 +91,8 @@ const roleController = {
                }]
              })
             .then(roles => response.status(200).send(roles))
-             .catch(error => RoleHelper.ListRolesAndUsersDatabaseError(response, error));
+             .catch(error => RoleHelper.ListRolesAndUsersDatabaseError(
+               response, error));
   },
 };
 export default roleController;
