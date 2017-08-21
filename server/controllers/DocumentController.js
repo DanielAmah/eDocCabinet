@@ -1,6 +1,8 @@
+
 import RoleHelper from '../helpers/RoleHelper';
 import DocumentHelper from '../helpers/DocumentHelper';
 import PageHelper from '../helpers/PageHelper';
+
 
 import model from '../models';
 
@@ -25,6 +27,9 @@ const documentController = {
       if (!DocumentHelper.ValidAccess(request)) {
         return DocumentHelper.InvalidDocumentAccess(response);
       }
+      if (typeof request.body.title === 'number') {
+        response.status(400).send({ message: 'title must be  characters not number' });
+      }
       return Documents
       .findOne({
         where: {
@@ -36,6 +41,7 @@ const documentController = {
           return response.status(409).send({
             message: 'A document with this title has been created' });
         }
+        // const result = sanitizeData(req.body);
         Documents
             .create({
               title: request.body.title,
@@ -44,12 +50,14 @@ const documentController = {
               userId: request.decoded.userId,
               access: request.body.access,
             })
-            .then(newDocument => response.status(201).send({
-              title: newDocument.title,
-              content: newDocument.content,
-              owner: newDocument.owner,
-              message: 'Document created successfully'
-            }))
+            .then(newDocument => response.status(201).send(
+              {
+                title: newDocument.title,
+                content: newDocument.content,
+                owner: newDocument.owner,
+                message: 'Document created successfully'
+              }
+          ))
              .catch(error =>
              DocumentHelper.CreateDatabaseError(response, error));
       });
@@ -98,8 +106,8 @@ const documentController = {
         }
         return document
           .update({
-            title: request.body.title || document.title,
-            content: request.body.content || document.content,
+            title: request.body.title.toString() || document.title,
+            content: request.body.content.toString() || document.content,
             access: request.body.access || document.access
           })
           .then(() => response.status(200).send({
