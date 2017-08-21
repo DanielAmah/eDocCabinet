@@ -151,7 +151,7 @@ const documentController = {
     }
     if (request.decoded.userId) {
       return Documents
-          .findAll({
+          .findAndCountAll({
             where: {
               $or: [{ access: 'public' }, { access: 'role',
                 $and: { roleId: request.decoded.userRole } },
@@ -159,7 +159,9 @@ const documentController = {
                   $and: { userId: request.decoded.userId } }]
             },
             attributes: ['id', 'title', 'access',
-              'content', 'owner', 'createdAt']
+              'content', 'owner', 'createdAt'],
+            limit: PageHelper.GetLimit(request),
+            offset: PageHelper.GetOffset(request)
           })
           .then((documents) => {
             const meta =
