@@ -27,7 +27,7 @@ const documentController = {
       if (!DocumentHelper.ValidAccess(request)) {
         return DocumentHelper.InvalidDocumentAccess(response);
       }
-      if (typeof request.body.title === 'number') {
+      if (typeof request.body.title === 'number' || typeof request.body.content === 'number') {
         response.status(400).send({ message: 'title must be  characters not number' });
       }
       return Documents
@@ -81,6 +81,9 @@ const documentController = {
     } else {
       if (!Number.isInteger(Number(request.params.documentId))) {
         return DocumentHelper.CheckIdIsNumber(response);
+      }
+      if (typeof request.body.title === 'number' || typeof request.body.content === 'number') {
+        response.status(400).send({ message: 'title must be  characters not number' });
       }
       return Documents
       .findOne({
