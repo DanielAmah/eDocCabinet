@@ -1,10 +1,8 @@
 import RoleHelper from '../helpers/RoleHelper';
 import models from '../models/';
 
-
 const Users = models.Users;
 const Roles = models.Roles;
-
 
 const RoleController = {
   /**
@@ -24,28 +22,26 @@ const RoleController = {
       if (!RoleHelper.isAdmin(request)) {
         return RoleHelper.AccessDenied(response);
       }
-      return Roles
-        .findOne({
-          where: {
-            title: request.body.title
-          }
-        })
-      .then((checkuser) => {
+      return Roles.findOne({
+        where: {
+          title: request.body.title
+        }
+      }).then((checkuser) => {
         if (checkuser) {
           return RoleHelper.IfRoleExists(response);
         }
-        return Roles
-        .create({
-          title: (request.body.title).toLowerCase(),
+        return Roles.create({
+          title: request.body.title.toLowerCase()
         })
-        .then(() => response.status(201).send({
-          message: 'Roles created successfully'
-        }))
-        .catch(error => RoleHelper.DatabaseError(response, error));
+          .then(() =>
+            response.status(201).send({
+              message: 'Roles created successfully'
+            })
+          )
+          .catch(error => RoleHelper.DatabaseError(response, error));
       });
     }
   },
-
 
   /**
    * listRoles: This allows admin to list all roles
@@ -60,15 +56,14 @@ const RoleController = {
     if (!RoleHelper.isAdmin(request)) {
       return RoleHelper.AccessDenied(response);
     }
-    return Roles
-      .findAll({
-        attributes: ['id', 'title', 'createdAt']
-      })
+    return Roles.findAll({
+      attributes: ['id', 'title', 'createdAt']
+    })
       .then(roles => response.status(200).send(roles))
       .catch(error => RoleHelper.ListDatabaseError(response, error));
   },
 
-      /**
+  /**
    * listRolesAndUsers: This allows admin to list all roles
    * @function  listRolesAndUsers
    * @param {object} request request send a request
@@ -82,17 +77,19 @@ const RoleController = {
     if (!RoleHelper.isAdmin(request)) {
       return RoleHelper.AccessDenied(response);
     }
-    return Roles
-      .findAll({
-        include: [{
+    return Roles.findAll({
+      include: [
+        {
           model: Users,
           as: 'users',
           attributes: ['id', 'username', 'email', 'roleId']
-        }]
-      })
+        }
+      ]
+    })
       .then(roles => response.status(200).send(roles))
-      .catch(error => RoleHelper.ListRolesAndUsersDatabaseError(
-      response, error));
-  },
+      .catch(error =>
+        RoleHelper.ListRolesAndUsersDatabaseError(response, error)
+      );
+  }
 };
 export default RoleController;

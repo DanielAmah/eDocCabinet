@@ -26,7 +26,7 @@ const RoleHelper = {
   },
 
   isSubscriber(request) {
-    return (request.decoded.userId === Number(request.params.userId));
+    return request.decoded.userId === Number(request.params.userId);
   },
   AccessDenied(response) {
     return response.status(401).send({
@@ -59,9 +59,9 @@ const RoleHelper = {
   },
   IfRoleExists(response) {
     return response.status(409).send({
-      message: 'Role Already Exists' });
-  },
-
+      message: 'Role Already Exists'
+    });
+  }
 };
 
 export default RoleHelper;

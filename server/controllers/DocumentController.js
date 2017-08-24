@@ -3,11 +3,10 @@ import DocumentHelper from '../helpers/DocumentHelper';
 import PageHelper from '../helpers/PageHelper';
 import models from '../models';
 
-
 const Documents = models.Documents;
 
 const DocumentController = {
-   /**
+  /**
    * newDocument: This allows registered users create documents
    * @function createDocument
    * @param {object} request send a request to create a new document
@@ -25,27 +24,27 @@ const DocumentController = {
         return DocumentHelper.InvalidDocumentAccess(response);
       }
       DocumentHelper.DocumentCheck(request, response);
-      return Documents
-      .findOne({
+      return Documents.findOne({
         where: {
           title: request.body.title
         }
-      })
-      .then((checkdocument) => {
+      }).then((checkdocument) => {
         if (checkdocument) {
           return response.status(409).send({
-            message: 'A document with this title has been created' });
+            message: 'A document with this title has been created'
+          });
         }
-        Documents
-         .create(DocumentHelper.CreateDocument(request))
-         .then(newDocument => response.status(201)
-         .send(DocumentHelper.CreateResponse(newDocument)))
-         .catch(error =>
-         DocumentHelper.CreateDatabaseError(response, error));
+        Documents.create(DocumentHelper.CreateDocument(request))
+          .then(newDocument =>
+            response
+              .status(201)
+              .send(DocumentHelper.CreateResponse(newDocument))
+          )
+          .catch(error => DocumentHelper.CreateDatabaseError(response, error));
       });
     }
   },
-   /**
+  /**
    * updateDocument: This allows registered users update saved documents
    * @function updateDocument
    * @param {object} request sends a request to update
@@ -65,39 +64,38 @@ const DocumentController = {
         return DocumentHelper.CheckIdIsNumber(response);
       }
       DocumentHelper.DocumentCheck(request, response);
-      return Documents
-      .findOne({
+      return Documents.findOne({
         where: {
           title: request.body.title
         }
-      })
-      .then((checkdocument) => {
+      }).then((checkdocument) => {
         if (checkdocument) {
           return response.status(409).send({
-            message: 'A document with this title has been created' });
+            message: 'A document with this title has been created'
+          });
         }
-        return Documents
-        .find({
+        return Documents.find({
           where: {
             id: request.params.documentId,
             userId: request.decoded.userId
-          },
-        })
-          .then((document) => {
-            if (!document) {
-              DocumentHelper.UpdateDocumentNotExist(response);
-            }
-            return document
-              .update(DocumentHelper.UpdateDocument(request, document))
-              .then(() => response.status(200)
-              .send(DocumentHelper.UpdateResponse(document)))
-              .catch(error => DocumentHelper.UpdateDatabaseError(
-                response, error));
-          });
+          }
+        }).then((document) => {
+          if (!document) {
+            DocumentHelper.UpdateDocumentNotExist(response);
+          }
+          return document
+            .update(DocumentHelper.UpdateDocument(request, document))
+            .then(() =>
+              response.status(200).send(DocumentHelper.UpdateResponse(document))
+            )
+            .catch(error =>
+              DocumentHelper.UpdateDatabaseError(response, error)
+            );
+        });
       });
     }
   },
-    /**
+  /**
    * showDocuments: This allows registered users get saved documents,
    * where role = "user's role" and public documents.
    * It gets all available documents both privates and public for admin users
@@ -109,43 +107,50 @@ const DocumentController = {
    * @return {object} - returns response status and json data
    */
   showDocuments(request, response) {
-    if (isNaN(PageHelper.GetLimit(request)) ||
-     isNaN(PageHelper.GetOffset(request))) {
+    if (
+      isNaN(PageHelper.GetLimit(request)) ||
+      isNaN(PageHelper.GetOffset(request))
+    ) {
       return response.status(400).send({
         message: 'limit and offset must be an number'
       });
     }
     if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
-      return Documents
-      .findAndCountAll({
-        attributes: ['id', 'title', 'content',
-          'access', 'owner', 'createdAt'],
+      return Documents.findAndCountAll({
+        attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
         limit: PageHelper.GetLimit(request),
         offset: PageHelper.GetOffset(request)
       })
         .then((documents) => {
-          const meta =
-          PageHelper.GetDocumentPageMeta(request, documents,
-          PageHelper.GetLimit, PageHelper.GetOffset);
+          const meta = PageHelper.GetDocumentPageMeta(
+            request,
+            documents,
+            PageHelper.GetLimit,
+            PageHelper.GetOffset
+          );
           const listDocuments = documents.rows;
           response.status(200).send({ listDocuments, meta });
         })
         .catch(error => DocumentHelper.ListDatabaseError(response, error));
     }
     if (request.decoded.userId) {
-      return Documents
-          .findAndCountAll(DocumentHelper.ShowQueryDatabase(request))
-          .then((documents) => {
-            const meta =
-                PageHelper.GetDocumentPageMeta(request, documents,
-                PageHelper.GetLimit, PageHelper.GetOffset);
-            const listDocuments = documents.rows;
-            response.status(200).send({ listDocuments, meta });
-          })
-          .catch(error => DocumentHelper.ListDatabaseError(response, error));
+      return Documents.findAndCountAll(
+        DocumentHelper.ShowQueryDatabase(request)
+      )
+        .then((documents) => {
+          const meta = PageHelper.GetDocumentPageMeta(
+            request,
+            documents,
+            PageHelper.GetLimit,
+            PageHelper.GetOffset
+          );
+          const listDocuments = documents.rows;
+          response.status(200).send({ listDocuments, meta });
+        })
+        .catch(error => DocumentHelper.ListDatabaseError(response, error));
     }
   },
-   /**
+  /**
    * findDocument: This allows registered users get documents by ID
    * where role = "user's role" and public documents,
    * Its gets document either private or public for admin user
@@ -161,12 +166,19 @@ const DocumentController = {
       return DocumentHelper.CheckIdIsNumber(response);
     }
     if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
-      return Documents
-      .find({
+      return Documents.find({
         where: { id: request.params.documentId },
-        attributes: ['id', 'title', 'access',
-          'content', 'owner', 'createdAt']
+        attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
       })
+        .then((document) => {
+          if (!document) {
+            return DocumentHelper.DocumentNotExist(response);
+          }
+          return response.status(200).send(document);
+        })
+        .catch(error => DocumentHelper.FindDatabaseError(response, error));
+    }
+    return Documents.find(DocumentHelper.FindQueryADocument(request))
       .then((document) => {
         if (!document) {
           return DocumentHelper.DocumentNotExist(response);
@@ -174,19 +186,9 @@ const DocumentController = {
         return response.status(200).send(document);
       })
       .catch(error => DocumentHelper.FindDatabaseError(response, error));
-    }
-    return Documents
-        .find(DocumentHelper.FindQueryADocument(request))
-        .then((document) => {
-          if (!document) {
-            return DocumentHelper.DocumentNotExist(response);
-          }
-          return response.status(200).send(document);
-        })
-    .catch(error => DocumentHelper.FindDatabaseError(response, error));
   },
 
-   /**
+  /**
    * deleteDocument:
    * This allows registered users to delete thier documents by ID
    * Admin users can also delete user's documents with by just ID
@@ -202,27 +204,31 @@ const DocumentController = {
       return DocumentHelper.CheckIdIsNumber(response);
     }
     if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
-      return Documents
-      .find({
+      return Documents.find({
         where: {
           id: request.params.documentId
         }
-      })
-      .then(document =>
-      DocumentHelper.DeleteDocumentLogic(
-      DocumentHelper.DocumentNotExist,
-      response, DocumentHelper.DeleteDatabaseError, document));
+      }).then(document =>
+        DocumentHelper.DeleteDocumentLogic(
+          DocumentHelper.DocumentNotExist,
+          response,
+          DocumentHelper.DeleteDatabaseError,
+          document
+        )
+      );
     }
-    return Documents
-    .find({
+    return Documents.find({
       where: {
         id: request.params.documentId,
         userId: request.decoded.userId
       }
-    })
-    .then((document) => {
-      DocumentHelper.DeleteDocumentLogic(DocumentHelper.DocumentNotExist,
-      response, DocumentHelper.DeleteDatabaseError, document);
+    }).then((document) => {
+      DocumentHelper.DeleteDocumentLogic(
+        DocumentHelper.DocumentNotExist,
+        response,
+        DocumentHelper.DeleteDatabaseError,
+        document
+      );
     });
   }
 };

@@ -1,5 +1,3 @@
-
-
 module.exports = {
   up(queryInterface) {
     /*
@@ -12,22 +10,26 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    return queryInterface.bulkInsert('Roles', [{
-      title: 'administrator',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      title: 'editor',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      title: 'subscriber',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    ], {});
-  },
-
+    return queryInterface.bulkInsert(
+      'Roles',
+      [
+        {
+          title: 'administrator',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          title: 'editor',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          title: 'subscriber',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ],
+      {}
+    );
+  }
 };

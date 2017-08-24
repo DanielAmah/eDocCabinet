@@ -6,16 +6,13 @@ import path from 'path';
 import validator from 'express-validator';
 import routes from './routes';
 
-
 // Set up the express app
 const app = express();
-
 
 // Log requests to the console.
 app.use(logger('dev'));
 
 app.use(express.static(path.resolve(__dirname, './../public')));
-
 
 // Parse incoming requests data
 app.use(bodyParser.json());

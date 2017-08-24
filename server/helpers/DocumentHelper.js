@@ -8,7 +8,7 @@ const DocumentHelper = {
       content: request.body.content,
       owner: request.decoded.userUsername,
       userId: request.decoded.userId,
-      access: request.body.access,
+      access: request.body.access
     };
     return createDocument;
   },
@@ -22,10 +22,13 @@ const DocumentHelper = {
     return createResponse;
   },
   DocumentCheck(request, response) {
-    if (typeof request.body.title === 'number'
-        || typeof request.body.content === 'number') {
+    if (
+      typeof request.body.title === 'number' ||
+      typeof request.body.content === 'number'
+    ) {
       response.status(400).send({
-        message: 'title must be characters not number' });
+        message: 'title must be characters not number'
+      });
     }
   },
   UpdateDocument(request, document) {
@@ -42,7 +45,7 @@ const DocumentHelper = {
       documentId: document.id,
       title: document.title,
       content: document.content,
-      owner: document.owner,
+      owner: document.owner
     };
     return updateResponse;
   },
@@ -50,14 +53,14 @@ const DocumentHelper = {
     const searchQuery = {
       where: {
         $or: [
-          { title: {
-            $iLike: `%${request.query.q}%`.toLowerCase()
-          }
+          {
+            title: {
+              $iLike: `%${request.query.q}%`.toLowerCase()
+            }
           }
         ]
       },
-      attributes: ['id', 'title', 'access',
-        'content', 'owner', 'createdAt']
+      attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
     };
     return searchQuery;
   },
@@ -67,12 +70,13 @@ const DocumentHelper = {
         title: {
           $iLike: `%${request.query.q}%`.toLowerCase()
         },
-        $or: [{ access: 'public' },
-           { access: 'role', $and: { roleId: request.decoded.userRole } },
-           { access: 'private', $and: { userId: request.decoded.userId } }]
+        $or: [
+          { access: 'public' },
+          { access: 'role', $and: { roleId: request.decoded.userRole } },
+          { access: 'private', $and: { userId: request.decoded.userId } }
+        ]
       },
-      attributes: ['id', 'title', 'access',
-        'content', 'owner', 'createdAt']
+      attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
     };
     return findQuery;
   },
@@ -80,25 +84,32 @@ const DocumentHelper = {
     const findADocument = {
       where: {
         id: request.params.documentId,
-        $or: [{ access: 'public' },
-         { access: 'role', $and: { roleId: request.decoded.userRole } },
-         { access: 'private', $and: { userId: request.decoded.userId } }]
+        $or: [
+          { access: 'public' },
+          { access: 'role', $and: { roleId: request.decoded.userRole } },
+          { access: 'private', $and: { userId: request.decoded.userId } }
+        ]
       },
-      attributes: ['id', 'title', 'access',
-        'content', 'owner', 'createdAt']
+      attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
     };
     return findADocument;
   },
   ShowQueryDatabase(request) {
     const showQuery = {
       where: {
-        $or: [{ access: 'public' }, { access: 'role',
-          $and: { roleId: request.decoded.userRole } },
-          { access: 'private',
-            $and: { userId: request.decoded.userId } }]
+        $or: [
+          { access: 'public' },
+          {
+            access: 'role',
+            $and: { roleId: request.decoded.userRole }
+          },
+          {
+            access: 'private',
+            $and: { userId: request.decoded.userId }
+          }
+        ]
       },
-      attributes: ['id', 'title', 'access',
-        'content', 'owner', 'createdAt'],
+      attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt'],
       limit: PageHelper.GetLimit(request),
       offset: PageHelper.GetOffset(request)
     };
@@ -107,18 +118,18 @@ const DocumentHelper = {
   DocumentNotFound(response, documents) {
     if (documents.length === 0) {
       return response.status(404).send({
-        message: 'No document Found',
+        message: 'No document Found'
       });
     }
   },
   UpdateDocumentNotExist(response) {
     return response.status(404).send({
-      message: 'The Document Does not Exist',
+      message: 'The Document Does not Exist'
     });
   },
   DocumentNotExist(response) {
     return response.status(404).send({
-      message: 'The Document Does not Exist',
+      message: 'The Document Does not Exist'
     });
   },
   CheckQuery(response) {
@@ -137,9 +148,10 @@ const DocumentHelper = {
     });
   },
   ValidAccess(request) {
-    const validAccess = (request.body.access === 'public'
-     || request.body.access === 'private' ||
-      request.body.access === 'role');
+    const validAccess =
+      request.body.access === 'public' ||
+      request.body.access === 'private' ||
+      request.body.access === 'role';
     return validAccess;
   },
   CreateDatabaseError(response) {
@@ -172,25 +184,34 @@ const DocumentHelper = {
       message: 'Invalid Document ID'
     });
   },
-  DeleteDocumentLogic(DocumentNotExist,
-    response, DeleteDatabaseError, document) {
+  DeleteDocumentLogic(
+    DocumentNotExist,
+    response,
+    DeleteDatabaseError,
+    document
+  ) {
     if (!document) {
       return DocumentNotExist(response);
     }
     return document
-                .destroy()
-                .then(() => response.status(200)
-                  .send({
-                    message: 'The Document has been deleted successfully.' }))
-                 .catch(error => DeleteDatabaseError(response, error));
+      .destroy()
+      .then(() =>
+        response.status(200).send({
+          message: 'The Document has been deleted successfully.'
+        })
+      )
+      .catch(error => DeleteDatabaseError(response, error));
   },
   Validation(request) {
-    request.checkBody('title',
-    'Enter a title for the document').isLength({ min: 1 });
-    request.checkBody('content',
-     'Enter a content for the document').isLength({ min: 1 });
-    request.checkBody('access',
-     'Enter an access for the document').isLength({ min: 1 });
+    request
+      .checkBody('title', 'Enter a title for the document')
+      .isLength({ min: 1 });
+    request
+      .checkBody('content', 'Enter a content for the document')
+      .isLength({ min: 1 });
+    request
+      .checkBody('access', 'Enter an access for the document')
+      .isLength({ min: 1 });
   },
   ValidationErrorMessage(errors) {
     const exclude = ['param', 'value'];
@@ -198,7 +219,6 @@ const DocumentHelper = {
     const ErrorMessage = error;
     return ErrorMessage;
   }
-
 };
 
 export default DocumentHelper;

@@ -46,9 +46,9 @@ export default (sequelize, DataTypes) => {
       references: {
         model: 'Roles',
         key: 'id',
-        as: 'roleId',
-      },
-    },
+        as: 'roleId'
+      }
+    }
   });
   Users.associate = (models) => {
     Users.belongsTo(models.Roles, {
@@ -56,10 +56,9 @@ export default (sequelize, DataTypes) => {
     });
     Users.hasMany(models.Documents, {
       foreignKey: 'userId',
-      as: 'myDocuments',
+      as: 'myDocuments'
     });
   };
-
 
   return Users;
 };

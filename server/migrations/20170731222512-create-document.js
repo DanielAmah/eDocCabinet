@@ -15,7 +15,7 @@ module.exports = {
       },
       access: {
         type: Sequelize.ENUM('public', 'private', 'role'),
-        defaultValue: 'public',
+        defaultValue: 'public'
       },
       owner: {
         type: Sequelize.STRING,
@@ -26,8 +26,8 @@ module.exports = {
         references: {
           model: 'Users',
           key: 'id',
-          as: 'userId',
-        },
+          as: 'userId'
+        }
       },
       roleId: {
         type: Sequelize.INTEGER,
@@ -35,8 +35,8 @@ module.exports = {
         references: {
           model: 'Roles',
           key: 'id',
-          as: 'roleId',
-        },
+          as: 'roleId'
+        }
       },
       createdAt: {
         allowNull: false,
@@ -45,8 +45,7 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
-      },
+      }
     }),
-  down: queryInterface =>
-    queryInterface.dropTable('Documents'),
+  down: queryInterface => queryInterface.dropTable('Documents')
 };

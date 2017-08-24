@@ -13,7 +13,7 @@ export default (sequelize, DataTypes) => {
     },
     content: {
       type: DataTypes.TEXT,
-      allowNull: true,
+      allowNull: true
     },
     access: {
       defaultValue: 'public',
@@ -21,29 +21,29 @@ export default (sequelize, DataTypes) => {
     },
     owner: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: false
     },
     userId: {
       type: DataTypes.INTEGER,
       references: {
         model: 'Users',
         key: 'id',
-        as: 'userId',
-      },
+        as: 'userId'
+      }
     },
     roleId: {
       type: DataTypes.INTEGER,
       references: {
         model: 'Roles',
         key: 'id',
-        as: 'roleId',
-      },
-    },
+        as: 'roleId'
+      }
+    }
   });
   Documents.associate = (models) => {
     Documents.belongsTo(models.Users, {
       foreignKey: 'userId',
-      onDelete: 'CASCADE',
+      onDelete: 'CASCADE'
     });
     Documents.belongsTo(models.Roles, {
       foreignKey: 'roleId'

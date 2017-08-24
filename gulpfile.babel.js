@@ -23,39 +23,45 @@ gulp.task('nodemon', () => {
   });
 });
 
-gulp.task('dev', () => gulp.src('server/**/*.js')
-    .pipe(babel({
-      presets: ['es2015', 'stage-2']
-    }))
-    .pipe(gulp.dest('build')));
+gulp.task('dev', () =>
+  gulp
+    .src('server/**/*.js')
+    .pipe(
+      babel({
+        presets: ['es2015', 'stage-2']
+      })
+    )
+    .pipe(gulp.dest('build'))
+);
 
 gulp.task('default', ['dev', 'nodemon'], () => {
   gulp.watch('server/**/*.js', ['dev']);
 });
 
 gulp.task('api-tests', () => {
-  gulp.src('./test/**/*.js')
+  gulp
+    .src('./test/**/*.js')
     .pipe(babel())
     .pipe(jasmineNode(jasmineNodeOpts))
     .pipe(exit());
 });
 
-
 gulp.task('coverage', (cb) => {
-  gulp.src('build/**/*.js')
+  gulp
+    .src('build/**/*.js')
     .pipe(istanbul())
     .pipe(istanbul.hookRequire())
     .on('finish', () => {
-      gulp.src('test/server/*.js')
-      .pipe(babel())
-      .pipe(injectModules())
-      .pipe(jasmineNode())
-      .pipe(istanbul.writeReports())
-      .pipe(istanbul.enforceThresholds({ thresholds: { global: 10 } }))
-      .on('end', cb)
-      .pipe(exit());
+      gulp
+        .src('test/server/*.js')
+        .pipe(babel())
+        .pipe(injectModules())
+        .pipe(jasmineNode())
+        .pipe(istanbul.writeReports())
+        .pipe(istanbul.enforceThresholds({ thresholds: { global: 10 } }))
+        .on('end', cb)
+        .pipe(exit());
     });
 });
 
-gulp.task('coveralls', () => gulp.src('./coverage/lcov')
-    .pipe(coveralls()));
+gulp.task('coveralls', () => gulp.src('./coverage/lcov').pipe(coveralls()));
