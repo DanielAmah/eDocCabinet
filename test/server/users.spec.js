@@ -455,7 +455,7 @@ describe('Users Controller', () => {
         });
     });
   });
-  describe('Get all documents of a user\'s Endpoint' + 
+  describe('Get all documents of a user\'s Endpoint' +
   '- GET /api/v1/users/id/documents/', () => {
     beforeEach((done) => {
       models.Users.create(adminUser).then(() => {
