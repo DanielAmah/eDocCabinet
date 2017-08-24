@@ -215,7 +215,8 @@ describe('Authentication Controller', () => {
     });
     it('should through an error for user with invalid token trying to ' +
     'access document', (done) => {
-      models.Documents.create(document1);
+      models.Documents.create(document2).then(() => {
+      });
       request.get('/api/v1/documents/1')
         .set('Authorization', `${unauthorizedToken}`)
         .set('Accept', 'application/json')
