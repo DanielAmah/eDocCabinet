@@ -1,7 +1,6 @@
 import faker from 'faker';
 import bcrypt from 'bcrypt';
 
-
 const hashPassword = plainPassword =>
   bcrypt.hashSync(plainPassword, bcrypt.genSaltSync(10));
 
@@ -9,29 +8,29 @@ const defaultPassword = 'password';
 
 const TestHelper = {
   adminRole: {
-    title: 'admin',
+    title: 'admin'
   },
 
   editorRole: {
-    title: 'editor',
+    title: 'editor'
   },
 
   subscriberRole: {
-    title: 'subscriber',
+    title: 'subscriber'
   },
 
   specUser1: {
     username: 'admin',
     email: 'admin@admin.com',
     password: hashPassword(defaultPassword),
-    roleId: 1,
+    roleId: 1
   },
 
   specUser2: {
     username: 'blessing',
     email: 'blessing@blessing.com',
     password: hashPassword(defaultPassword),
-    roleId: 2,
+    roleId: 2
   },
 
   specWrongUser: {
@@ -51,7 +50,7 @@ const TestHelper = {
     username: 'daniel',
     email: 'daniel@daniel.com',
     password: hashPassword(defaultPassword),
-    roleId: 3,
+    roleId: 3
   },
   specUpdateUser: {
     email: 'paulson@paul.com',
@@ -74,7 +73,7 @@ const TestHelper = {
     username: 'afrocode',
     password: hashPassword(defaultPassword),
     email: 'afrocode@afrocode.com',
-    roleId: 3,
+    roleId: 3
   },
   specNoUser: {
     email: 'wrong@email.com',
@@ -95,36 +94,32 @@ const TestHelper = {
     owner: 'admin',
     roleId: 1,
     userId: 1
-
   },
 
   specDocument2: {
     title: 'Computer Science',
-    content: 'Computer science is the study of the theory, experimentation,and'
-    + ' engineering that form the basis for the design and use of computers.',
+    content: 'Computer science is the study of the theory,' +
+      ' experimentation,and engineering that form the basis' +
+      ' for the design and use of computers.',
     access: 'public',
     owner: 'daniel',
     roleId: 3,
     userId: 3
   },
   specUpdateDocument: {
-
     title: 'updated title',
     content: 'another content',
     access: 'role'
-
   },
   specBadAccessDocument: {
-
     title: 'new title',
     content: 'new content',
-    access: 'badaccess',
-
+    access: 'badaccess'
   },
   noTitleDocument: {
     title: '',
     content: 'new content',
-    access: 'role',
+    access: 'role'
   },
   noContentDocument: {
     title: 'new title',
@@ -132,6 +127,5 @@ const TestHelper = {
     access: 'role'
   }
 };
-
 
 export { TestHelper, defaultPassword };

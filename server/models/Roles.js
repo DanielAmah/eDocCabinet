@@ -18,7 +18,7 @@ export default (sequelize, DataTypes) => {
   Roles.associate = (models) => {
     Roles.hasMany(models.Users, {
       foreignKey: 'roleId',
-      as: 'users',
+      as: 'users'
     });
   };
   return Roles;

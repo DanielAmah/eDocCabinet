@@ -4,8 +4,7 @@ import UserHelper from './UserHelper';
 const AuthHelper = {
   Auth(user, request, JsonWebTokenHelper, response) {
     if (user) {
-      const passkey =
-          bcrypt.compareSync(request.body.password, user.password);
+      const passkey = bcrypt.compareSync(request.body.password, user.password);
       if (!passkey) {
         return UserHelper.InCorrectPassword(response);
       }

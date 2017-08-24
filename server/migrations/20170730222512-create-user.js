@@ -10,15 +10,15 @@ module.exports = {
       email: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+        unique: true
       },
       username: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
       },
       password: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: false
       },
       roleId: {
         type: Sequelize.INTEGER,
@@ -26,8 +26,8 @@ module.exports = {
         references: {
           model: 'Roles',
           key: 'id',
-          as: 'roleId',
-        },
+          as: 'roleId'
+        }
       },
       createdAt: {
         allowNull: false,
@@ -38,6 +38,5 @@ module.exports = {
         type: Sequelize.DATE
       }
     }),
-  down: queryInterface =>
-    queryInterface.dropTable('Users'),
+  down: queryInterface => queryInterface.dropTable('Users')
 };

@@ -11,13 +11,15 @@ const UserHelper = {
     return LoginUser;
   },
   RegisterUser(request) {
-    const password = bcrypt.hashSync(request.body.password,
-       bcrypt.genSaltSync(10));
+    const password = bcrypt.hashSync(
+      request.body.password,
+      bcrypt.genSaltSync(10)
+    );
     const registerUser = {
       email: request.body.email.toLowerCase(),
       username: request.body.username,
       password,
-      roleId: request.body.roleId,
+      roleId: request.body.roleId
     };
     return registerUser;
   },
@@ -63,7 +65,7 @@ const UserHelper = {
           },
           {
             username: request.body.username
-          },
+          }
         ]
       }
     };
@@ -73,12 +75,14 @@ const UserHelper = {
     const searchQuery = {
       where: {
         $or: [
-          { email: {
-            $iLike: `%${request.query.q}%`.toLowerCase()
-          },
+          {
+            email: {
+              $iLike: `%${request.query.q}%`.toLowerCase()
+            },
             username: {
               $iLike: `%${request.query.q}%`.toLowerCase()
-            } }
+            }
+          }
         ]
       },
       attributes: ['id', 'email', 'username', 'roleId', 'createdAt']
@@ -178,17 +182,19 @@ const UserHelper = {
   },
   ChangeToLowerCase(request) {
     if (request.body.username) {
-      request.body.username = (request.body.username).toLowerCase();
-      request.body.email = (request.body.email).toLowerCase();
+      request.body.username = request.body.username.toLowerCase();
+      request.body.email = request.body.email.toLowerCase();
     }
   },
   IfEmailExists(response) {
     return response.status(409).send({
-      message: 'Username / Email Already Exists' });
+      message: 'Username / Email Already Exists'
+    });
   },
   IfRoleExists(response) {
     return response.status(409).send({
-      message: 'Role Already Exists' });
+      message: 'Role Already Exists'
+    });
   },
   CheckQuery(response) {
     response.status(400).send({
@@ -196,23 +202,33 @@ const UserHelper = {
     });
   },
   Validation(request) {
-    request.checkBody('email',
-     'Enter a valid email address (someone@organization.com)').isEmail();
-    request.checkBody('username',
-     'Enter a valid username of more than 5 characters').isLength({ min: 5 });
-    request.checkBody('password',
-     'Enter a valid password of more than 5 characters').isLength({ min: 5 });
+    request
+      .checkBody(
+        'email',
+        'Enter a valid email address (someone@organization.com)'
+      )
+      .isEmail();
+    request
+      .checkBody('username', 'Enter a valid username of more than 5 characters')
+      .isLength({ min: 5 });
+    request
+      .checkBody('password', 'Enter a valid password of more than 5 characters')
+      .isLength({ min: 5 });
   },
   LoginValidation(request) {
-    request.checkBody('username',
-     'Enter a valid username of more than 5 characters').isLength({ min: 5 });
-    request.checkBody('password',
-     'Enter a valid password of more than 5 characters').isLength({ min: 5 });
+    request
+      .checkBody('username', 'Enter a valid username of more than 5 characters')
+      .isLength({ min: 5 });
+    request
+      .checkBody('password', 'Enter a valid password of more than 5 characters')
+      .isLength({ min: 5 });
   },
   RoleValidation(request) {
     request.checkBody('roleId', 'Enter a valid role id').isInt();
-    request.checkParams('userId',
-     'Enter a valid user id to update role').notEmpty().isInt();
+    request
+      .checkParams('userId', 'Enter a valid user id to update role')
+      .notEmpty()
+      .isInt();
   },
   ValidationErrorMessage(errors) {
     const exclude = ['param', 'value'];
@@ -225,10 +241,10 @@ const UserHelper = {
       return UserHelper.UserNotFound(response);
     }
     return user
-     .destroy()
-     .then(() => response.status(200)
-     .send({ message: 'User deleted successfully.' }));
+      .destroy()
+      .then(() =>
+        response.status(200).send({ message: 'User deleted successfully.' })
+      );
   }
 };
 export default UserHelper;
-

@@ -7,14 +7,17 @@ import UserController from '../controllers/UserController';
 import SearchController from '../controllers/SearchController';
 import AuthController from '../controllers/AuthController';
 
-
 const Routes = (app) => {
-  app.post('/', (req, res) => res.status(200).send({
-    message: 'Welcome to E-DocCabinet - A document management API',
-  }));
-  app.get('/', (req, res) => res.status(200).send({
-    message: 'Welcome to E-DocCabinet - A document management API',
-  }));
+  app.post('/', (req, res) =>
+    res.status(200).send({
+      message: 'Welcome to E-DocCabinet - A document management API'
+    })
+  );
+  app.get('/', (req, res) =>
+    res.status(200).send({
+      message: 'Welcome to E-DocCabinet - A document management API'
+    })
+  );
   // all user routes
   app.post('/api/v1/users/', UserController.signup);
   app.post('/api/v1/users/login', AuthController.login);
@@ -34,8 +37,10 @@ const Routes = (app) => {
   app.put('/api/v1/documents/:documentId', DocumentController.updateDocument);
   app.get('/api/v1/documents/:documentId', DocumentController.findDocument);
   app.get('/api/v1/search/documents/', SearchController.searchDocument);
-  app.delete('/api/v1/documents/:documentId',
-   DocumentController.deleteDocument);
+  app.delete(
+    '/api/v1/documents/:documentId',
+    DocumentController.deleteDocument
+  );
 
   // all Role routes
   app.post('/api/v1/roles/', RoleController.newRole);

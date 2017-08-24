@@ -1,10 +1,9 @@
 import jwt from 'jsonwebtoken';
 
-
 require('dotenv').config();
 
 const authentication = {
- /**
+  /**
 * verifyToken: This verifies all routes that starts with /api
    *  It checks if there is token and check if the token is valid
    *  if the token is valid, then it decodes it and send to the next route
@@ -17,8 +16,8 @@ const authentication = {
    * @return {object}  returns response status and json data
    */
   verifyUser(request, response, next) {
-    const token = request.headers['x-access-token']
-     || request.headers.authorization;
+    const token =
+      request.headers['x-access-token'] || request.headers.authorization;
     if (!token) {
       return response.status(401).send({
         message: 'Not Authorized'
@@ -34,7 +33,6 @@ const authentication = {
       next();
     });
   }
-
 };
 
 export default authentication;

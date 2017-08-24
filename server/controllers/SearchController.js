@@ -6,9 +6,8 @@ import models from '../models/';
 const Users = models.Users;
 const Documents = models.Documents;
 
-
 const SearchController = {
-/**
+  /**
    * searchUsers: Enables users to search for other registered users
    * @function searchUser
    * @param {object} request request
@@ -24,15 +23,14 @@ const SearchController = {
     if (!RoleHelper.isAdmin(request)) {
       return UserHelper.AccessDenied(response);
     }
-    return Users
-    .findAll(UserHelper.SearchQueryDatabase(request))
-    .then((user) => {
-      UserHelper.UserNotFound(response, user);
-      return response.status(200).send(user);
-    })
-     .catch(error => UserHelper.SearchDatabaseError(response, error));
+    return Users.findAll(UserHelper.SearchQueryDatabase(request))
+      .then((user) => {
+        UserHelper.UserNotFound(response, user);
+        return response.status(200).send(user);
+      })
+      .catch(error => UserHelper.SearchDatabaseError(response, error));
   },
-    /**
+  /**
    * searchDocument: This allows registered users get documents by search key
    * where role = "user's role" and userId = "user's ID"  and
    * public & private document.
@@ -51,24 +49,20 @@ const SearchController = {
       });
     }
     if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
-      return Documents
-       .findAll(DocumentHelper.SearchQueryDatabase(request))
+      return Documents.findAll(DocumentHelper.SearchQueryDatabase(request))
         .then((document) => {
           DocumentHelper.DocumentNotFound(response, document);
           return response.status(200).send(document);
         })
-        .catch(error => DocumentHelper.SearchDatabaseError(
-        response, error));
+        .catch(error => DocumentHelper.SearchDatabaseError(response, error));
     }
-    return Documents
-      .findAll(DocumentHelper.FindQueryDatabase(request))
+    return Documents.findAll(DocumentHelper.FindQueryDatabase(request))
       .then((document) => {
         DocumentHelper.DocumentNotFound(response, document);
         return response.status(200).send(document);
       })
       .catch(error => DocumentHelper.SearchDatabaseError(response, error));
-  },
-
+  }
 };
 
 export default SearchController;
