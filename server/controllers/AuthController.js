@@ -1,13 +1,13 @@
-import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
 import JsonWebTokenHelper from '../helpers/JsonWebTokenHelper';
 import UserHelper from '../helpers/UserHelper';
+import AuthHelper from '../helpers/AuthHelper';
+import models from '../models';
 
-import model from '../models';
 
+const Users = models.Users;
 
-const Users = model.Users;
-
-require('dotenv').config();
+dotenv.config();
 
   /**
    * login: Enables users to login to their accounts
@@ -17,7 +17,7 @@ require('dotenv').config();
    * throws an error.
    * @return {object}  returns response status and json data
    */
-const authController = {
+const AuthController = {
   login(request, response) {
     UserHelper.LoginValidation(request);
     const errors = request.validationErrors();
@@ -25,27 +25,16 @@ const authController = {
       response.status(400).send(UserHelper.ValidationErrorMessage(errors));
     } else {
       return Users
-      .findOne({
-        where: {
-          username: request.body.username
-        }
-      }).then((user) => {
-        if (user) {
-          const passkey =
-          bcrypt.compareSync(request.body.password, user.password);
-          if (!passkey) {
-            return UserHelper.InCorrectPassword(response);
-          }
-          const token = JsonWebTokenHelper(user);
-          const oldUser = UserHelper.OldUser(user);
-          response.status(200).send({ oldUser, token });
-        } else {
-          return UserHelper.UserNotFound(response);
-        }
-      })
+          .findOne({
+            where: {
+              username: request.body.username
+            }
+          }).then((user) => {
+            AuthHelper.Auth(user, request, JsonWebTokenHelper, response);
+          })
         .catch(error => UserHelper.DatabaseError(response, error));
     }
   }
 };
 
-export default authController;
+export default AuthController;

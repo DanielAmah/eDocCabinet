@@ -1,15 +1,16 @@
 import bcrypt from 'bcrypt';
-import model from '../models/';
+import dotenv from 'dotenv';
+import models from '../models/';
 import JsonWebTokenHelper from '../helpers/JsonWebTokenHelper';
 import RoleHelper from '../helpers/RoleHelper';
 import PageHelper from '../helpers/PageHelper';
 import UserHelper from '../helpers/UserHelper';
 import DocumentHelper from '../helpers/DocumentHelper';
 
-require('dotenv').config();
+dotenv.config();
 
-const Users = model.Users;
-const Documents = model.Documents;
+const Users = models.Users;
+const Documents = models.Documents;
 
 
   /**
@@ -27,18 +28,11 @@ const UserController = {
     if (errors) {
       response.status(400).send(UserHelper.ValidationErrorMessage(errors));
     } else {
-      const password = bcrypt.hashSync(request.body.password,
-       bcrypt.genSaltSync(10));
       return Users
      .findOne({
        where: {
-         $or: [
-           {
-             email: request.body.email
-           },
-           {
-             username: request.body.username
-           },
+         $or: [{ email: request.body.email },
+           { username: request.body.username },
          ]
        }
      })
@@ -47,12 +41,7 @@ const UserController = {
           return UserHelper.IfEmailExists(response);
         }
         Users
-      .create({
-        email: request.body.email.toLowerCase(),
-        username: request.body.username,
-        password,
-        roleId: request.body.roleId,
-      })
+      .create(UserHelper.RegisterUser(request))
       .then((user) => {
         const token = JsonWebTokenHelper(user);
         const newUser = UserHelper.newUser(user);
@@ -92,19 +81,19 @@ const UserController = {
       return UserHelper.AccessDenied(response);
     }
     return Users
-            .findAndCountAll({
-              attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
-              limit: PageHelper.GetLimit(request),
-              offset: PageHelper.GetOffset(request)
-            })
-            .then((users) => {
-              const meta =
-                PageHelper.GetPageMeta(request, users,
-                 PageHelper.GetLimit, PageHelper.GetOffset);
-              const userlist = users.rows;
-              response.status(200).send({ userlist, meta });
-            })
-             .catch(error => UserHelper.ListDatabaseError(response, error));
+    .findAndCountAll({
+      attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
+      limit: PageHelper.GetLimit(request),
+      offset: PageHelper.GetOffset(request)
+    })
+    .then((users) => {
+      const meta =
+      PageHelper.GetPageMeta(request, users,
+      PageHelper.GetLimit, PageHelper.GetOffset);
+      const userlist = users.rows;
+      response.status(200).send({ userlist, meta });
+    })
+    .catch(error => UserHelper.ListDatabaseError(response, error));
   },
      /**
    * listUsersAndDocuments: Enables users to get list of
@@ -127,23 +116,23 @@ const UserController = {
       return UserHelper.UserAndDocumentAccessDenied(response);
     }
     return Users
-        .findAndCountAll({
-          attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
-          include: [{
-            model: Documents,
-            as: 'myDocuments'
-          }],
-          limit: PageHelper.GetLimit(request),
-          offset: PageHelper.GetOffset(request)
-        })
-        .then((users) => {
-          const meta =
-                PageHelper.GetPageMeta(request, users,
-                 PageHelper.GetLimit, PageHelper.GetOffset);
-          const userlist = users.rows;
-          response.status(200).send(
+      .findAndCountAll({
+        attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
+        include: [{
+          model: Documents,
+          as: 'myDocuments'
+        }],
+        limit: PageHelper.GetLimit(request),
+        offset: PageHelper.GetOffset(request)
+      })
+      .then((users) => {
+        const meta =
+        PageHelper.GetPageMeta(request, users,
+        PageHelper.GetLimit, PageHelper.GetOffset);
+        const userlist = users.rows;
+        response.status(200).send(
           { userlist, meta });
-        })
+      })
        .catch(error => UserHelper.ListUserAndDocumentDatabaseError(
          response, error));
   },
@@ -169,52 +158,33 @@ const UserController = {
         return UserHelper.UpdateAccessDenied(response);
       }
       return Users
-     .findOne({
-       where: {
-         $or: [
-           {
-             email: request.body.email
-           },
-           {
-             username: request.body.username
-           },
-         ]
-       }
-     })
+     .findOne(UserHelper.QueryDatabaseEmailAndUsername(request))
      .then((checkuser) => {
        if (checkuser) {
          return UserHelper.IfEmailExists(response);
        }
-       Users.find({
-         where: {
-           $or: [
-             {
-               id: request.params.userId
-             }
-           ]
-         }
-       });
+       Users.find(UserHelper.QueryDatabaseId(request));
        return Users.findById(request.params.userId)
-                  .then((user) => {
-                    if (!user) {
-                      UserHelper.UserNotFound(response);
-                    }
-                    const password = request.body.password ?
+        .then((user) => {
+          if (!user) {
+            UserHelper.UserNotFound(response);
+          }
+          const password = request.body.password ?
               bcrypt.hashSync(request.body.password,
                 bcrypt.genSaltSync(10)) : null;
-                    return user
-                      .update({
-                        username: request.body.username || user.username,
-                        email: request.body.email || user.email,
-                        password: password || user.password
-                      })
-                      .then(() => response.status(200).send({
-                        email: user.email,
-                        username: user.username,
-                        role: user.roleId
-                      }));
-                  })
-              .catch(error => UserHelper.UpdateDatabaseError(response, error));
+          return user
+            .update({
+              username: request.body.username || user.username,
+              email: request.body.email || user.email,
+              password: password || user.password
+            })
+            .then(() => response.status(200).send({
+              email: user.email,
+              username: user.username,
+              role: user.roleId
+            }));
+        })
+        .catch(error => UserHelper.UpdateDatabaseError(response, error));
      });
     }
   },
@@ -237,42 +207,26 @@ const UserController = {
         return UserHelper.UpdateAccessDenied(response);
       }
       return Users
-     .findOne({
-       where: {
-         $or: [
-           {
-             title: request.body.title
-           }
-         ]
-       }
-     })
+     .findOne(UserHelper.QueryDatabaseTitle(request))
      .then((checkrole) => {
        if (checkrole) {
          return UserHelper.IfRoleExists(response);
        }
-       Users.find({
-         where: {
-           $or: [
-             {
-               id: request.params.userId
-             }
-           ]
-         }
-       });
+       Users.find(UserHelper.QueryDatabaseId(request));
        return Users.findById(request.params.userId)
-                  .then((user) => {
-                    if (!user) {
-                      UserHelper.UserNotFound(response);
-                    }
-                    return user
-                      .update({
-                        roleId: request.body.roleId || user.roleId
-                      })
-                      .then(() => response.status(200).send({
-                        message: 'User role updated successfully',
-                        role: user.roleId
-                      }));
-                  })
+          .then((user) => {
+            if (!user) {
+              UserHelper.UserNotFound(response);
+            }
+            return user
+            .update({
+              roleId: request.body.roleId || user.roleId
+            })
+             .then(() => response.status(200).send({
+               message: 'User role updated successfully',
+               role: user.roleId
+             }));
+          })
               .catch(error => UserHelper.UpdateRoleDatabaseError(
                 response, error));
      });
@@ -295,18 +249,18 @@ const UserController = {
       return UserHelper.FindUsersAccessDenied(response);
     }
     return Users
-            .find({
-              where: {
-                id: request.params.userId,
-              },
-              attributes: ['id', 'email', 'username', 'createdAt'],
-            })
-            .then((user) => {
-              if (!user) {
-                UserHelper.UserNotFound(response);
-              }
-              return response.status(200).send(user);
-            })
+      .find({
+        where: {
+          id: request.params.userId,
+        },
+        attributes: ['id', 'email', 'username', 'createdAt'],
+      })
+      .then((user) => {
+        if (!user) {
+          UserHelper.UserNotFound(response);
+        }
+        return response.status(200).send(user);
+      })
            .catch(error => UserHelper.FindUserDatabaseError(response, error));
   },
     /**
@@ -326,17 +280,11 @@ const UserController = {
       UserHelper.DeleteAccessDenied(response);
     }
     return Users
-            .findById(request.params.userId)
-            .then((user) => {
-              if (!user) {
-                return UserHelper.UserNotFound(response);
-              }
-              return user
-                .destroy()
-                .then(() => response.status(200)
-                  .send({ message: 'User deleted successfully.' }));
-            })
-            .catch(error => UserHelper.DeleteDatabaseError(response, error));
+      .findById(request.params.userId)
+      .then((user) => {
+        UserHelper.DeleteUserLogic(user, response);
+      })
+      .catch(error => UserHelper.DeleteDatabaseError(response, error));
   },
    /**
    * findUserDocument: Enables users get documents that belongs to the user
@@ -353,21 +301,21 @@ const UserController = {
       return UserHelper.DocumentAccessDenied(response);
     }
     return Documents
-            .findAll({
-              where: {
-                userId: request.params.userId,
-              },
-              attributes: ['id', 'title', 'access',
-                'content', 'owner', 'createdAt']
-            })
-            .then((documents) => {
-              if (!documents) {
-                DocumentHelper.DocumentNotFound(documents);
-              }
-              return response.status(200).send(documents);
-            })
-             .catch(error => UserHelper.FindUserDocDatabaseError(
-               response, error));
+      .findAll({
+        where: {
+          userId: request.params.userId,
+        },
+        attributes: ['id', 'title', 'access',
+          'content', 'owner', 'createdAt']
+      })
+      .then((documents) => {
+        if (!documents) {
+          DocumentHelper.DocumentNotFound(documents);
+        }
+        return response.status(200).send(documents);
+      })
+       .catch(error => UserHelper.FindUserDocDatabaseError(
+          response, error));
   },
 };
 

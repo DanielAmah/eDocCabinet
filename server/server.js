@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import http from 'http';
 import path from 'path';
 import validator from 'express-validator';
-import Routes from './routes';
+import routes from './routes';
 
 
 // Set up the express app
@@ -25,7 +25,7 @@ app.use(validator());
 const port = parseInt(process.env.PORT, 10) || 8000;
 app.set('port', port);
 
-Routes(app);
+routes(app);
 
 const server = http.createServer(app);
 server.listen(port);

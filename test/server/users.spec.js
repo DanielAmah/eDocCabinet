@@ -115,9 +115,8 @@
         });
      });
      it('should not create a user with an email that exists', (done) => {
-       models.Users.create(
-        adminUser
-      );
+       models.Users.create(adminUser).then(() => {
+       });
        request.post('/api/v1/users/')
         .send(adminUser)
         .end((error, response) => {
@@ -127,31 +126,15 @@
           done();
         });
      });
-     describe('the test to get users', () => {
-       it('should return the message when no user is found', (done) => {
-         models.Users.destroy({
-           where: {},
-           truncate: true,
-           cascade: true,
-           restartIdentity: true
-         });
-         request.get('/api/v1/users/')
-        .set('Authorization', `${adminToken}`)
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
-        .end((error, response) => {
-          expect(response.status).to.equal(200);
-          expect(typeof response.body).to.equal('object');
-          done();
-        });
+   });
+   describe('the test to get users', () => {
+     beforeEach((done) => {
+       models.Users.create(adminUser).then(() => {
+         done();
        });
-       beforeEach((done) => {
-         models.Users.create(adminUser).then(() => {
-           done();
-         });
-       });
-       it('should successfully get all users with admin access', (done) => {
-         request.get('/api/v1/users/')
+     });
+     it('should successfully get all users with admin access', (done) => {
+       request.get('/api/v1/users/')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -163,9 +146,9 @@
           expect(response.body.meta.totalCount).to.equal(1);
           done();
         });
-       });
-       it('should not allow a subscriber to get all users', (done) => {
-         request.get('/api/v1/users/')
+     });
+     it('should not allow a subscriber to get list of all users', (done) => {
+       request.get('/api/v1/users/')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -175,10 +158,10 @@
            'Access Denied. You can not see register subscribers');
           done();
         });
-       });
-       it('should not allow admin to get all users if limit' +
-           'and offset are not numbers', (done) => {
-         request.get('/api/v1/users/?limit=q&offset=0')
+     });
+     it('should validate the limit and offset parameters and' +
+           'sends an error if limit and offset are not numbers', (done) => {
+       request.get('/api/v1/users/?limit=q&offset=0')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -188,9 +171,9 @@
            'limit and offset must be an number');
           done();
         });
-       });
-       it('should successfully apply pagination to list of users', (done) => {
-         request.get('/api/v1/users?limit=1&offset=0')
+     });
+     it('should successfully apply pagination to list of users', (done) => {
+       request.get('/api/v1/users?limit=1&offset=0')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -198,13 +181,15 @@
           expect(response.status).to.equal(200);
           expect(response.body.userlist[0].email).to.equal(adminUser.email);
           expect(response.body.userlist[0].roleId).to.equal(1);
+          expect(response.body.meta.pageCount).to.equal(1);
+          expect(response.body.meta.pageSize).to.equal(1);
           expect(response.body.meta.page).to.equal(1);
           done();
         });
-       });
-       it('should successfully list all users and' +
+     });
+     it('should successfully list all users and' +
        'documents on admin access', (done) => {
-         request.get('/api/v1/users-docs/?limit=1&offset=0')
+       request.get('/api/v1/users-docs/?limit=1&offset=0')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -215,10 +200,10 @@
           expect(response.body.meta.page).to.equal(1);
           done();
         });
-       });
-       it('should not successfully list all users' +
+     });
+     it('should not list all users' +
        'and documents on subscriber access', (done) => {
-         request.get('/api/v1/users-docs/')
+       request.get('/api/v1/users-docs/')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -228,17 +213,17 @@
            'Access Denied. You can not see subscribers and their documents');
           done();
         });
+     });
+   });
+   describe('Retrieve User Endpoint', () => {
+     beforeEach((done) => {
+       models.Users.create(adminUser).then(() => {
+         done();
        });
      });
-     describe('Retrieve User Endpoint', () => {
-       beforeEach((done) => {
-         models.Users.create(adminUser).then(() => {
-           done();
-         });
-       });
-       it('should return a message \'User not found\' if ' +
+     it('should return a message \'User not found\' if ' +
        'no user found to retrieve', (done) => {
-         request.get('/api/v1/users/10')
+       request.get('/api/v1/users/10')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -247,9 +232,9 @@
           expect(response.body.message).to.equal('User not found');
           done();
         });
-       });
-       it('should successfuly return the user if found', (done) => {
-         request.get('/api/v1/users/1')
+     });
+     it('should successfuly return the user if found', (done) => {
+       request.get('/api/v1/users/1')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -259,10 +244,10 @@
           expect(response.body.username).to.equal('admin');
           done();
         });
-       });
-       it('should not successfuly return if it is ' +
+     });
+     it('should not return if it is ' +
        'a subscriber access', (done) => {
-         request.get('/api/v1/users/1')
+       request.get('/api/v1/users/1')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -272,9 +257,9 @@
           'Access Denied. You can not find other register subscribers');
           done();
         });
-       });
-       it('should not allow invalid UserId', (done) => {
-         request.get('/api/v1/users/d')
+     });
+     it('should not allow invalid UserId', (done) => {
+       request.get('/api/v1/users/d')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -284,16 +269,16 @@
             'Invalid User ID');
           done();
         });
+     });
+   });
+   describe('Update User Endpoint', () => {
+     beforeEach((done) => {
+       models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+         done();
        });
      });
-     describe('Update User Endpoint', () => {
-       beforeEach((done) => {
-         models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
-           done();
-         });
-       });
-       it('should return a 404 error if user not found', (done) => {
-         request.put('/api/v1/users/10')
+     it('should return a 404 status if user not found to update', (done) => {
+       request.put('/api/v1/users/10')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -303,9 +288,9 @@
           expect(response.body.message).to.equal('User not found');
           done();
         });
-       });
-       it('should not allow invalid id to be updated', (done) => {
-         request.put('/api/v1/users/p')
+     });
+     it('should not allow users with invalid id to be updated', (done) => {
+       request.put('/api/v1/users/p')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -315,10 +300,10 @@
           expect(response.body.message).to.equal('Invalid User ID');
           done();
         });
-       });
-       it('should not other a subscriber to update' +
+     });
+     it('should not other a subscriber to update' +
        'someone\'s account', (done) => {
-         request.put('/api/v1/users/1')
+       request.put('/api/v1/users/1')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -329,10 +314,10 @@
             'Access Denied. You can not update other register subscribers');
           done();
         });
-       });
-       it('should not update a user role with a wrong' +
+     });
+     it('should not update a user role with a wrong' +
        'used id parameter', (done) => {
-         request.put('/api/v1/users-role/q')
+       request.put('/api/v1/users-role/q')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -342,11 +327,11 @@
           expect(response.body[0].msg).to.equal('Enter a valid role id');
           done();
         });
-       });
+     });
 
-       it('should not update a user role without a role id', (done) => {
-         models.Users.create(subscriberUser);
-         request.put('/api/v1/users-role/1')
+     it('should not update a user role without a role id', (done) => {
+       models.Users.create(subscriberUser);
+       request.put('/api/v1/users-role/1')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -356,10 +341,10 @@
           expect(response.body[0].msg).to.equal('Enter a valid role id');
           done();
         });
-       });
-
-       it('should successfully update an admin account', (done) => {
-         request.put('/api/v1/users/1')
+     });
+      
+     it('should successfully update an admin account', (done) => {
+       request.put('/api/v1/users/1')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -375,17 +360,17 @@
 
           done();
         });
+     });
+   });
+
+   describe('Delete Users Endpoint', () => {
+     beforeEach((done) => {
+       models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
+         done();
        });
      });
-
-     describe('Delete Users Endpoint', () => {
-       beforeEach((done) => {
-         models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
-           done();
-         });
-       });
-       it('should not allow a subscriber to delete a user', (done) => {
-         request.delete('/api/v1/users/2')
+     it('should not allow a subscriber to delete a user', (done) => {
+       request.delete('/api/v1/users/2')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -395,9 +380,9 @@
             'Access Denied. You can not remove other register subscribers');
           done();
         });
-       });
-       it('should return a 404 error if user not found', (done) => {
-         request.delete('/api/v1/users/10')
+     });
+     it('should return a 404 status if user not found to delete', (done) => {
+       request.delete('/api/v1/users/10')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -406,9 +391,9 @@
           expect(response.body.message).to.equal('User not found');
           done();
         });
-       });
-       it('should successfully delete a user', (done) => {
-         request.delete('/api/v1/users/1')
+     });
+     it('should successfully delete a user as an admin', (done) => {
+       request.delete('/api/v1/users/1')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -417,10 +402,9 @@
           expect(response.body.message).to.equal('User deleted successfully.');
           done();
         });
-       });
-       it('should not successfully delete a user if' +
-       'id is not a number', (done) => {
-         request.delete('/api/v1/users/q')
+     });
+     it('should validate if user id is a number', (done) => {
+       request.delete('/api/v1/users/q')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -429,16 +413,15 @@
           expect(response.body.message).to.equal('Invalid User ID');
           done();
         });
-       });
      });
-     describe('Get all documents of a user\'s Endpoint', () => {
-       beforeEach((done) => {
-         models.Users.create(adminUser).then(() => {
-           done();
-         });
+   });
+   describe('Get all documents of a user\'s Endpoint', () => {
+     beforeEach((done) => {
+       models.Users.create(adminUser).then(() => {
          done();
        });
-       it('should return an empty object if no document is found',
+     });
+     it('should return an empty object if no document is found',
       (done) => {
         request.get('/api/v1/users/1/documents')
           .set('Authorization', `${adminToken}`)
@@ -450,26 +433,26 @@
             done();
           });
       });
-       it('should successfully return all documents found', (done) => {
-         models.Documents.create(
-      document1
-      );
-         request.get('/api/v1/users/1/documents')
+     it('should successfully return all documents found', (done) => {
+       models.Documents.create(document1).then(() => {
+       });
+       request.get('/api/v1/users/1/documents')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(200);
           expect(typeof response.body).to.equal('object');
+          expect(response.body[0].title).to.equal('My first document');
+          expect(response.body[0].content).to.equal('The best content');
           done();
         });
-       });
-       it('should not successfully return all documents' +
+     });
+     it('should not successfully return all documents' +
        'of a user with an invalid id', (done) => {
-         models.Documents.create(
-      document1
-      );
-         request.get('/api/v1/users/q/documents')
+       models.Documents.create(document1).then(() => {
+       });
+       request.get('/api/v1/users/q/documents')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -478,13 +461,12 @@
           expect(response.body.message).to.equal('Invalid User ID');
           done();
         });
-       });
-       it('should not successfully return all documents of a' +
+     });
+     it('should not successfully return all documents of a' +
        'different user without authorization', (done) => {
-         models.Documents.create(
-      document1
-      );
-         request.get('/api/v1/users/1/documents')
+       models.Documents.create(document1).then(() => {
+       });
+       request.get('/api/v1/users/1/documents')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -494,7 +476,6 @@
           ' You can not see documents of other subscribers');
           done();
         });
-       });
      });
    });
  });

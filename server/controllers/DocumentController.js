@@ -1,15 +1,12 @@
-
 import RoleHelper from '../helpers/RoleHelper';
 import DocumentHelper from '../helpers/DocumentHelper';
 import PageHelper from '../helpers/PageHelper';
+import models from '../models';
 
 
-import model from '../models';
+const Documents = models.Documents;
 
-
-const Documents = model.Documents;
-
-const documentController = {
+const DocumentController = {
    /**
    * newDocument: This allows registered users create documents
    * @function createDocument
@@ -27,9 +24,7 @@ const documentController = {
       if (!DocumentHelper.ValidAccess(request)) {
         return DocumentHelper.InvalidDocumentAccess(response);
       }
-      if (typeof request.body.title === 'number' || typeof request.body.content === 'number') {
-        response.status(400).send({ message: 'title must be  characters not number' });
-      }
+      DocumentHelper.DocumentCheck(request, response);
       return Documents
       .findOne({
         where: {
@@ -41,25 +36,12 @@ const documentController = {
           return response.status(409).send({
             message: 'A document with this title has been created' });
         }
-        // const result = sanitizeData(req.body);
         Documents
-            .create({
-              title: request.body.title,
-              content: request.body.content,
-              owner: request.decoded.userUsername,
-              userId: request.decoded.userId,
-              access: request.body.access,
-            })
-            .then(newDocument => response.status(201).send(
-              {
-                title: newDocument.title,
-                content: newDocument.content,
-                owner: newDocument.owner,
-                message: 'Document created successfully'
-              }
-          ))
-             .catch(error =>
-             DocumentHelper.CreateDatabaseError(response, error));
+         .create(DocumentHelper.CreateDocument(request))
+         .then(newDocument => response.status(201)
+         .send(DocumentHelper.CreateResponse(newDocument)))
+         .catch(error =>
+         DocumentHelper.CreateDatabaseError(response, error));
       });
     }
   },
@@ -82,9 +64,7 @@ const documentController = {
       if (!Number.isInteger(Number(request.params.documentId))) {
         return DocumentHelper.CheckIdIsNumber(response);
       }
-      if (typeof request.body.title === 'number' || typeof request.body.content === 'number') {
-        response.status(400).send({ message: 'title must be  characters not number' });
-      }
+      DocumentHelper.DocumentCheck(request, response);
       return Documents
       .findOne({
         where: {
@@ -97,31 +77,23 @@ const documentController = {
             message: 'A document with this title has been created' });
         }
         return Documents
-      .find({
-        where: {
-          id: request.params.documentId,
-          userId: request.decoded.userId
-        },
-      })
-      .then((document) => {
-        if (!document) {
-          DocumentHelper.UpdateDocumentNotExist(response);
-        }
-        return document
-          .update({
-            title: request.body.title.toString() || document.title,
-            content: request.body.content.toString() || document.content,
-            access: request.body.access || document.access
-          })
-          .then(() => response.status(200).send({
-            message: 'The Document has been successfully updated',
-            documentId: document.id,
-            title: document.title,
-            content: document.content,
-            owner: document.owner,
-          }))
-           .catch(error => DocumentHelper.UpdateDatabaseError(response, error));
-      });
+        .find({
+          where: {
+            id: request.params.documentId,
+            userId: request.decoded.userId
+          },
+        })
+          .then((document) => {
+            if (!document) {
+              DocumentHelper.UpdateDocumentNotExist(response);
+            }
+            return document
+              .update(DocumentHelper.UpdateDocument(request, document))
+              .then(() => response.status(200)
+              .send(DocumentHelper.UpdateResponse(document)))
+              .catch(error => DocumentHelper.UpdateDatabaseError(
+                response, error));
+          });
       });
     }
   },
@@ -145,35 +117,24 @@ const documentController = {
     }
     if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
       return Documents
-            .findAndCountAll({
-              attributes: ['id', 'title', 'content',
-                'access', 'owner', 'createdAt'],
-              limit: PageHelper.GetLimit(request),
-              offset: PageHelper.GetOffset(request)
-            })
-              .then((documents) => {
-                const meta =
-                PageHelper.GetDocumentPageMeta(request, documents,
-                PageHelper.GetLimit, PageHelper.GetOffset);
-                const listDocuments = documents.rows;
-                response.status(200).send({ listDocuments, meta });
-              })
-            .catch(error => DocumentHelper.ListDatabaseError(response, error));
+      .findAndCountAll({
+        attributes: ['id', 'title', 'content',
+          'access', 'owner', 'createdAt'],
+        limit: PageHelper.GetLimit(request),
+        offset: PageHelper.GetOffset(request)
+      })
+        .then((documents) => {
+          const meta =
+          PageHelper.GetDocumentPageMeta(request, documents,
+          PageHelper.GetLimit, PageHelper.GetOffset);
+          const listDocuments = documents.rows;
+          response.status(200).send({ listDocuments, meta });
+        })
+        .catch(error => DocumentHelper.ListDatabaseError(response, error));
     }
     if (request.decoded.userId) {
       return Documents
-          .findAndCountAll({
-            where: {
-              $or: [{ access: 'public' }, { access: 'role',
-                $and: { roleId: request.decoded.userRole } },
-                { access: 'private',
-                  $and: { userId: request.decoded.userId } }]
-            },
-            attributes: ['id', 'title', 'access',
-              'content', 'owner', 'createdAt'],
-            limit: PageHelper.GetLimit(request),
-            offset: PageHelper.GetOffset(request)
-          })
+          .findAndCountAll(DocumentHelper.ShowQueryDatabase(request))
           .then((documents) => {
             const meta =
                 PageHelper.GetDocumentPageMeta(request, documents,
@@ -201,38 +162,28 @@ const documentController = {
     }
     if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
       return Documents
-            .find({
-              where: { id: request.params.documentId },
-              attributes: ['id', 'title', 'access',
-                'content', 'owner', 'createdAt']
-            })
-            .then((document) => {
-              if (!document) {
-                return DocumentHelper.DocumentNotExist(response);
-              }
-              return response.status(200).send(document);
-            })
-            .catch(error => DocumentHelper.FindDatabaseError(response, error));
+      .find({
+        where: { id: request.params.documentId },
+        attributes: ['id', 'title', 'access',
+          'content', 'owner', 'createdAt']
+      })
+      .then((document) => {
+        if (!document) {
+          return DocumentHelper.DocumentNotExist(response);
+        }
+        return response.status(200).send(document);
+      })
+      .catch(error => DocumentHelper.FindDatabaseError(response, error));
     }
     return Documents
-          .find({
-            where: {
-              id: request.params.documentId,
-              $or: [{ access: 'public' }, { access: 'role',
-                $and: { roleId: request.decoded.userRole } },
-                { access: 'private',
-                  $and: { userId: request.decoded.userId } }]
-            },
-            attributes: ['id', 'title', 'access',
-              'content', 'owner', 'createdAt']
-          })
-          .then((document) => {
-            if (!document) {
-              return DocumentHelper.DocumentNotExist(response);
-            }
-            return response.status(200).send(document);
-          })
-          .catch(error => DocumentHelper.FindDatabaseError(response, error));
+        .find(DocumentHelper.FindQueryADocument(request))
+        .then((document) => {
+          if (!document) {
+            return DocumentHelper.DocumentNotExist(response);
+          }
+          return response.status(200).send(document);
+        })
+    .catch(error => DocumentHelper.FindDatabaseError(response, error));
   },
 
    /**
@@ -252,26 +203,27 @@ const documentController = {
     }
     if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
       return Documents
-            .find({
-              where: {
-                id: request.params.documentId
-              }
-            })
-            .then(document => DocumentHelper.DeleteDocumentLogic(
-              DocumentHelper.DocumentNotExist,
-              response, DocumentHelper.DeleteDatabaseError, document));
+      .find({
+        where: {
+          id: request.params.documentId
+        }
+      })
+      .then(document =>
+      DocumentHelper.DeleteDocumentLogic(
+      DocumentHelper.DocumentNotExist,
+      response, DocumentHelper.DeleteDatabaseError, document));
     }
     return Documents
-          .find({
-            where: {
-              id: request.params.documentId,
-              userId: request.decoded.userId
-            }
-          })
-          .then((document) => {
-            DocumentHelper.DeleteDocumentLogic(DocumentHelper.DocumentNotExist,
-              response, DocumentHelper.DeleteDatabaseError, document);
-          });
+    .find({
+      where: {
+        id: request.params.documentId,
+        userId: request.decoded.userId
+      }
+    })
+    .then((document) => {
+      DocumentHelper.DeleteDocumentLogic(DocumentHelper.DocumentNotExist,
+      response, DocumentHelper.DeleteDatabaseError, document);
+    });
   }
 };
-export default documentController;
+export default DocumentController;
