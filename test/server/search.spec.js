@@ -13,7 +13,7 @@ const request = supertest.agent(app);
 const adminUser = TestHelper.specUser1;
 const subscriberUser = TestHelper.specUser3;
 const document1 = TestHelper.specDocument1;
-const document2 = TestHelper.specDocument2;
+
 
 const adminToken = JsonWebTokenHelper(adminUser);
 const subscriberToken = JsonWebTokenHelper(subscriberUser);
@@ -58,14 +58,8 @@ describe('Search Controller', () => {
     });
   });
   describe('Search Users Endpoint', () => {
-    beforeEach((done) => {
-      models.Users.create(adminUser).then(() => {
-        done();
-      });
-      done();
-    });
     it('should display the message "User not found" when' +
-    'no user is found', (done) => {
+    'querying the database for an unregistered user', (done) => {
       request.get('/api/v1/search/users?q=antony')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -76,7 +70,9 @@ describe('Search Controller', () => {
           done();
         });
     });
-    it('should not display search for subscriber access', (done) => {
+    it('should not display search result for user with ' +
+     'subscriber access', (done) => {
+      models.Users.create(adminUser);
       request.get('/api/v1/search/users?q=admin')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
@@ -103,8 +99,7 @@ describe('Search Controller', () => {
   });
   describe('Search Documents Endpoint', () => {
     beforeEach((done) => {
-      models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
-        models.Documents.bulkCreate([document1, document2]);
+      models.Users.create(adminUser).then(() => {
         done();
       });
     });
@@ -119,8 +114,11 @@ describe('Search Controller', () => {
           done();
         });
     });
-    it('should successfully return the document found',
+    it('should successfully return a document if a document exists' +
+     'and it is accessed by an admin',
       (done) => {
+        models.Documents.create(document1).then(() => {
+        });
         request.get('/api/v1/search/documents/?q=My first document')
           .set('Authorization', `${adminToken}`)
           .set('Accept', 'application/json')
@@ -128,6 +126,8 @@ describe('Search Controller', () => {
           .end((err, response) => {
             expect(response.status).to.equal(200);
             expect(response.body[0].title).to.equal('My first document');
+            expect(response.body[0].content).to.equal('The best content');
+            expect(response.body[0].access).to.equal('public');
             done();
           });
       });

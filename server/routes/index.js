@@ -42,16 +42,7 @@ const Routes = (app) => {
   app.get('/api/v1/roles', RoleController.listRoles);
   app.get('/api/v1/roles-users/', RoleController.listRolesAndUsers);
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
-  });
-  app.post('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
-  });
-  app.delete('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
-  });
-  app.put('*', (req, res) => {
+  app.use('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../../public', 'index.html'));
   });
 };

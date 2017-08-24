@@ -64,12 +64,11 @@ describe('Authentication Controller', () => {
   });
   describe('Create Documents Endpoint', () => {
     beforeEach((done) => {
-      models.Users.create(adminUser).then(() => {
+      models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
         done();
       });
-      done();
     });
-    it('should not create a document with wrong access', (done) => {
+    it('should not create a document with wrong document access', (done) => {
       request.post('/api/v1/documents/')
         .send(BadAccessDocument)
         .set('Authorization', `${adminToken}`)
@@ -108,6 +107,22 @@ describe('Authentication Controller', () => {
           done();
         });
     });
+    it('it should not create document if it exists', (done) => {
+      models.Documents.create(document2).then(() => {
+      });
+      request.post('/api/v1/documents/')
+      .send(document2)
+      .set('Authorization', `${adminToken}`)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .end((err, response) => {
+        expect(response.status).to.equal(409);
+        expect(response.body.message).to.equal(
+          'A document with this title has been created'
+        );
+        done();
+      });
+    });
     it('should successfully create a new document', (done) => {
       request.post('/api/v1/documents/')
         .send(document2)
@@ -118,6 +133,12 @@ describe('Authentication Controller', () => {
           expect(response.status).to.equal(201);
           expect(response.body.message).to.equal(
             'Document created successfully');
+          expect(response.body.title).to.equal('Computer Science');
+          expect(response.body.content).to.equal(
+            'Computer science is the study of the theory,' +
+            ' experimentation,and engineering that form the' +
+            ' basis for the design and use of computers.'
+          );
           done();
         });
     });
@@ -129,7 +150,7 @@ describe('Authentication Controller', () => {
       });
     });
     it('should successfully get all documents for an admin', (done) => {
-      models.Documents.create(document1);
+      models.Documents.bulkCreate([document1, document2]);
       request.get('/api/v1/documents/')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -138,12 +159,13 @@ describe('Authentication Controller', () => {
           expect(response.status).to.equal(200);
           expect(response.body.listDocuments[0].content).to.equal(
             'The best content');
+          expect(response.body.listDocuments[1].title).to.equal(
+            'Computer Science');
           done();
         });
     });
-    it('should not get all documents for an admin if' +
-    'limit is not a number', (done) => {
-      models.Documents.create(document1);
+    it('should validate offset and limit parameters and throw ' +
+    'an error if offset and limit is not a number', (done) => {
       request.get('/api/v1/documents/?limit=10&offset=q')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -156,14 +178,19 @@ describe('Authentication Controller', () => {
         });
     });
     it('should successfully get all documents a user has access to', (done) => {
-      models.Documents.bulkCreate([document1, document2]);
+      models.Documents.create(document1).then(() => {
+        //
+      });
       request.get('/api/v1/documents/')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(200);
-          expect(typeof response.body).to.equal('object');
+          expect(response.body.listDocuments[0].title).to.equal(
+            'My first document');
+          expect(response.body.listDocuments[0].content).to.equal(
+            'The best content');
           done();
         });
     });
@@ -171,12 +198,11 @@ describe('Authentication Controller', () => {
   describe('Retrieve Document Endpoint', () => {
     beforeEach((done) => {
       models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
-        models.Documents.bulkCreate([document1, document2]);
         done();
       });
     });
-    it('should return a 404 error if document not found', (done) => {
-      models.Documents.create(document1);
+    it('should return a 404 status and error message if document is ' +
+    'not found', (done) => {
       request.get('/api/v1/documents/10')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -187,9 +213,10 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should not allow an user with invalid token' +
-    'to get documents', (done) => {
-      models.Documents.create(document1);
+    it('should through an error for user with invalid token trying to ' +
+    'access document', (done) => {
+      models.Documents.create(document2).then(() => {
+      });
       request.get('/api/v1/documents/1')
         .set('Authorization', `${unauthorizedToken}`)
         .set('Accept', 'application/json')
@@ -200,7 +227,8 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should successfuly return the document found for an authorized admin',
+    it('should successfully return the document found for ' +
+    'an authorized admin',
       (done) => {
         models.Documents.create(document1);
         request.get('/api/v1/documents/1')
@@ -210,13 +238,14 @@ describe('Authentication Controller', () => {
           .end((err, response) => {
             expect(response.status).to.equal(200);
             expect(response.body.title).to.equal('My first document');
+            expect(response.body.content).to.equal('The best content');
             done();
           });
       });
     it('should not allow an invalid document id when' +
     'retrieving document', (done) => {
       request.get('/api/v1/documents/p')
-        .set('Authorization', `${adminToken}`)
+        .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
@@ -231,17 +260,23 @@ describe('Authentication Controller', () => {
     'an authorized subscriber',
       (done) => {
         models.Documents.create(document2);
-        request.get('/api/v1/documents/2')
+        request.get('/api/v1/documents/1')
           .set('Authorization', `${subscriberToken}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .end((err, response) => {
             expect(response.status).to.equal(200);
             expect(response.body.title).to.equal('Computer Science');
+            expect(response.body.content).to.equal(
+            'Computer science is the study of the theory,'
+             + ' experimentation,and engineering that form ' +
+             'the basis for the design and use of computers.'
+            );
             done();
           });
       });
-    it('should not retrieve any document for an authorized subscriber',
+    it('should not retrieve any document for an authorized subscriber' +
+     'if document does not exist',
       (done) => {
         request.get('/api/v1/documents/3')
           .set('Authorization', `${subscriberToken}`)
@@ -258,23 +293,23 @@ describe('Authentication Controller', () => {
   describe('Update Document Endpoint', () => {
     beforeEach((done) => {
       models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
-        models.Documents.bulkCreate([document1, document2]);
         done();
       });
     });
-    it('should return a 404 error if document not found', (done) => {
-      models.Documents.create(document1);
-      request.put('/api/v1/documents/10')
+    it('should return a 404 error if document not found for update',
+     (done) => {
+       request.put('/api/v1/documents/10')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .send(updateDocument)
         .end((err, response) => {
           expect(response.status).to.equal(404);
-          expect(response.body.message).to.equal('The Document Does not Exist');
+          expect(response.body.message).to.equal(
+            'The Document Does not Exist');
           done();
         });
-    });
+     });
     it('should not allow a user to update document ' +
     'with invalid document id', (done) => {
       request.put('/api/v1/documents/q')
@@ -288,15 +323,33 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should allow an authorized subscriber to delete' +
-    'a document created by user', (done) => {
-      request.put('/api/v1/documents/2')
+    it('should allow a subscriber to update his own document', (done) => {
+      models.Documents.create(document2).then(() => {
+      });
+      request.put('/api/v1/documents/1')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .send(updateDocument)
         .end((err, response) => {
           expect(response.status).to.equal(200);
+          expect(response.body.title).to.equal('updated title');
+          expect(response.body.content).to.equal('another content');
+          done();
+        });
+    });
+    it('should not update document if title already exists', (done) => {
+      models.Documents.create(document2).then(() => {
+      });
+      request.put('/api/v1/documents/1')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .send(document2)
+        .end((err, response) => {
+          expect(response.status).to.equal(409);
+          expect(response.body.message).to.equal(
+            'A document with this title has been created');
           done();
         });
     });
@@ -305,13 +358,11 @@ describe('Authentication Controller', () => {
   describe('Delete Documents Endpoint', () => {
     beforeEach((done) => {
       models.Users.bulkCreate([adminUser, subscriberUser]).then(() => {
-        models.Documents.bulkCreate([document1, document2]);
         done();
       });
     });
-    it('should return a 404 error if document not found' +
+    it('should return a 404 error if no document found to delete' +
     'in the database', (done) => {
-      models.Documents.create(document1);
       request.delete('/api/v1/documents/10')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -323,7 +374,7 @@ describe('Authentication Controller', () => {
         });
     });
     it('should return a bad request status if a user uses' +
-    'a non numeric id to delete document', (done) => {
+    'an invalid id to delete document', (done) => {
       request.delete('/api/v1/documents/q')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -334,9 +385,10 @@ describe('Authentication Controller', () => {
           done();
         });
     });
-    it('should allow an authorize admin successfully' +
+    it('should allow an authorize admin to successfully' +
     'delete a document', (done) => {
-      models.Documents.create(document1);
+      models.Documents.create(document1).then(() => {
+      });
       request.delete('/api/v1/documents/1')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -349,9 +401,9 @@ describe('Authentication Controller', () => {
         });
     });
     it('should allow an authorize subscriber' +
-    'successfully delete a document ', (done) => {
+    ' to successfully delete his document ', (done) => {
       models.Documents.create(document2);
-      request.delete('/api/v1/documents/2')
+      request.delete('/api/v1/documents/1')
         .set('Authorization', `${subscriberToken}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)

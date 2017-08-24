@@ -11,6 +11,7 @@
 
 
  const adminUser = TestHelper.specUser1;
+ const subscriberUser = TestHelper.specUser3;
  const specWrongUser = TestHelper.specWrongUser;
 
 
@@ -43,7 +44,10 @@
                     TestHelper.adminRole,
                     TestHelper.editorRole,
                     TestHelper.subscriberRole
-                  ]).then(() => {
+                  ]).then((err) => {
+                    if (!err) {
+                      //
+                    }
                     done();
                   });
                 }
@@ -55,14 +59,14 @@
    });
    describe('Login Endpoint', () => {
      beforeEach((done) => {
-       models.Users.create(
-        adminUser
-      ).then(() => {
-        done();
-      });
+       models.Users.bulkCreate([
+         adminUser, subscriberUser
+       ]).then(() => {
+         done();
+       });
      });
      it('should return a message "user not found" if' +
-      'user not found', (done) => {
+      'a unknown user tries to login', (done) => {
        request.post('/api/v1/users/login')
         .send(specWrongUser)
         .end((err, response) => {
@@ -75,7 +79,7 @@
        request.post('/api/v1/users/login')
         .send({
           username: adminUser.username,
-          password: 'nothepassword'
+          password: 'notthepassword'
         })
         .end((err, response) => {
           expect(response.status).to.equal(403);
@@ -96,7 +100,7 @@
           done();
         });
      });
-     it('should successfully log a user in', (done) => {
+     it('should successfully log a user in the right credentials', (done) => {
        request.post('/api/v1/users/login')
         .send({
           username: adminUser.username,

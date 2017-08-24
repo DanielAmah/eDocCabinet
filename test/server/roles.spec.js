@@ -9,6 +9,7 @@ const app = require('../../build/server');
 
 const request = supertest.agent(app);
 
+const Users = models.Users;
 
 const adminUser = TestHelper.specUser1;
 const subscriberUser = TestHelper.specUser3;
@@ -16,7 +17,6 @@ const subscriberUser = TestHelper.specUser3;
 
 const adminToken = JsonWebTokenHelper(adminUser);
 const subscriberToken = JsonWebTokenHelper(subscriberUser);
-
 
 describe('Role Controller', () => {
   beforeEach((done) => {
@@ -69,13 +69,6 @@ describe('Role Controller', () => {
           done();
         });
     });
-    beforeEach((done) => {
-      models.Users.create(
-        adminUser
-      ).then(() => {
-        done();
-      });
-    });
     it('should successfully create a new role with admin access', (done) => {
       request.post('/api/v1/roles/')
         .send({
@@ -87,6 +80,7 @@ describe('Role Controller', () => {
         .end((err, response) => {
           expect(response.status).to.equal(201);
           expect(response.body.message).to.equal('Roles created successfully');
+
           done();
         });
     });
@@ -129,14 +123,7 @@ describe('Role Controller', () => {
           done();
         });
     });
-    beforeEach((done) => {
-      models.Users.create(
-        adminUser
-      ).then(() => {
-        done();
-      });
-    });
-    it('should successfully get all roles', (done) => {
+    it('should successfully get all roles for an admin access', (done) => {
       request.get('/api/v1/roles/')
         .set('Authorization', `${adminToken}`)
         .set('Accept', 'application/json')
@@ -172,14 +159,6 @@ describe('Role Controller', () => {
           done();
         });
     });
-    beforeEach((done) => {
-      models.Users.create(
-        adminUser
-      ).then(() => {
-        done();
-      });
-    });
-
     it('should successfully get all roles and users with' +
     'admin access', (done) => {
       request.get('/api/v1/roles-users/')
@@ -204,6 +183,19 @@ describe('Role Controller', () => {
           expect(response.status).to.equal(401);
           expect(response.body.message).to.equal(
             'Access Denied. You can not create a new role');
+          done();
+        });
+    });
+    it('should not create a new role if it already exists', (done) => {
+      request.post('/api/v1/roles')
+       .send({ title: 'subscriber' })
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(409);
+          expect(response.body.message).to.equal(
+            'Role Already Exists');
           done();
         });
     });

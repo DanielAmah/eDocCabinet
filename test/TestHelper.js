@@ -35,7 +35,7 @@ const TestHelper = {
   },
 
   specWrongUser: {
-    username: 'wrong',
+    username: 'wrongusername',
     password: 'wrongpassword'
   },
   specWrongPassword: {

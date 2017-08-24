@@ -1,12 +1,12 @@
 import RoleHelper from '../helpers/RoleHelper';
-import model from '../models/';
+import models from '../models/';
 
 
-const User = model.Users;
-const Roles = model.Roles;
+const Users = models.Users;
+const Roles = models.Roles;
 
 
-const roleController = {
+const RoleController = {
   /**
    *  newRole: This allows admin to create a new role
    * @function newRole
@@ -35,13 +35,13 @@ const roleController = {
           return RoleHelper.IfRoleExists(response);
         }
         return Roles
-            .create({
-              title: (request.body.title).toLowerCase(),
-            })
-            .then(() => response.status(201).send({
-              message: 'Roles created successfully'
-            }))
-              .catch(error => RoleHelper.DatabaseError(response, error));
+        .create({
+          title: (request.body.title).toLowerCase(),
+        })
+        .then(() => response.status(201).send({
+          message: 'Roles created successfully'
+        }))
+        .catch(error => RoleHelper.DatabaseError(response, error));
       });
     }
   },
@@ -61,11 +61,11 @@ const roleController = {
       return RoleHelper.AccessDenied(response);
     }
     return Roles
-            .findAll({
-              attributes: ['id', 'title', 'createdAt']
-            })
-            .then(roles => response.status(200).send(roles))
-             .catch(error => RoleHelper.ListDatabaseError(response, error));
+      .findAll({
+        attributes: ['id', 'title', 'createdAt']
+      })
+      .then(roles => response.status(200).send(roles))
+      .catch(error => RoleHelper.ListDatabaseError(response, error));
   },
 
       /**
@@ -83,16 +83,16 @@ const roleController = {
       return RoleHelper.AccessDenied(response);
     }
     return Roles
-             .findAll({
-               include: [{
-                 model: User,
-                 as: 'users',
-                 attributes: ['id', 'username', 'email', 'roleId']
-               }]
-             })
-            .then(roles => response.status(200).send(roles))
-             .catch(error => RoleHelper.ListRolesAndUsersDatabaseError(
-               response, error));
+      .findAll({
+        include: [{
+          model: Users,
+          as: 'users',
+          attributes: ['id', 'username', 'email', 'roleId']
+        }]
+      })
+      .then(roles => response.status(200).send(roles))
+      .catch(error => RoleHelper.ListRolesAndUsersDatabaseError(
+      response, error));
   },
 };
-export default roleController;
+export default RoleController;

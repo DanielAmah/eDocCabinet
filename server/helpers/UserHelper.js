@@ -1,4 +1,5 @@
 import omit from 'omit';
+import bcrypt from 'bcrypt';
 
 const UserHelper = {
   OldUser(user) {
@@ -9,6 +10,17 @@ const UserHelper = {
     };
     return LoginUser;
   },
+  RegisterUser(request) {
+    const password = bcrypt.hashSync(request.body.password,
+       bcrypt.genSaltSync(10));
+    const registerUser = {
+      email: request.body.email.toLowerCase(),
+      username: request.body.username,
+      password,
+      roleId: request.body.roleId,
+    };
+    return registerUser;
+  },
   newUser(user) {
     const RegisterUser = {
       success: true,
@@ -17,6 +29,61 @@ const UserHelper = {
       userUsername: user.username
     };
     return RegisterUser;
+  },
+  QueryDatabaseTitle(request) {
+    const queryDatabase = {
+      where: {
+        $or: [
+          {
+            title: request.body.title
+          }
+        ]
+      }
+    };
+    return queryDatabase;
+  },
+  QueryDatabaseId(request) {
+    const queryDatabase = {
+      where: {
+        $or: [
+          {
+            id: request.params.userId
+          }
+        ]
+      }
+    };
+    return queryDatabase;
+  },
+  QueryDatabaseEmailAndUsername(request) {
+    const queryDatabase = {
+      where: {
+        $or: [
+          {
+            email: request.body.email
+          },
+          {
+            username: request.body.username
+          },
+        ]
+      }
+    };
+    return queryDatabase;
+  },
+  SearchQueryDatabase(request) {
+    const searchQuery = {
+      where: {
+        $or: [
+          { email: {
+            $iLike: `%${request.query.q}%`.toLowerCase()
+          },
+            username: {
+              $iLike: `%${request.query.q}%`.toLowerCase()
+            } }
+        ]
+      },
+      attributes: ['id', 'email', 'username', 'roleId', 'createdAt']
+    };
+    return searchQuery;
   },
   DatabaseError(response) {
     response.status(500).send({
@@ -152,6 +219,15 @@ const UserHelper = {
     const error = errors.map(omit(exclude));
     const ErrorMessage = error;
     return ErrorMessage;
+  },
+  DeleteUserLogic(user, response) {
+    if (!user) {
+      return UserHelper.UserNotFound(response);
+    }
+    return user
+     .destroy()
+     .then(() => response.status(200)
+     .send({ message: 'User deleted successfully.' }));
   }
 };
 export default UserHelper;
