@@ -99,10 +99,7 @@ describe('Search Controller', () => {
   });
   describe('Search Documents Endpoint', () => {
     beforeEach((done) => {
-      models.Users.create(adminUser).then((err) => {
-        if (!err) {
-          //
-        }
+      models.Users.create(adminUser).then(() => {
         done();
       });
     });
@@ -120,7 +117,8 @@ describe('Search Controller', () => {
     it('should successfully return a document if a document exists' +
      'and it is accessed by an admin',
       (done) => {
-        models.Documents.create(document1);
+        models.Documents.create(document1).then(() => {
+        });
         request.get('/api/v1/search/documents/?q=My first document')
           .set('Authorization', `${adminToken}`)
           .set('Accept', 'application/json')
