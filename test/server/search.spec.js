@@ -1,19 +1,19 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-import { TestHelper } from '../TestHelper';
+import { testHelper } from '../testHelper';
 import models from '../../server/models';
-import JsonWebTokenHelper from '../../server/helpers/JsonWebTokenHelper';
+import jsonWebTokenHelper from '../../server/helpers/jsonWebTokenHelper';
 
 const app = require('../../build/server');
 
 const request = supertest.agent(app);
 
-const adminUser = TestHelper.specUser1;
-const subscriberUser = TestHelper.specUser3;
-const document1 = TestHelper.specDocument1;
+const adminUser = testHelper.specUser1;
+const subscriberUser = testHelper.specUser3;
+const document1 = testHelper.specDocument1;
 
-const adminToken = JsonWebTokenHelper(adminUser);
-const subscriberToken = JsonWebTokenHelper(subscriberUser);
+const adminToken = jsonWebTokenHelper(adminUser);
+const subscriberToken = jsonWebTokenHelper(subscriberUser);
 
 describe('Search Controller', () => {
   beforeEach((done) => {
@@ -46,9 +46,9 @@ describe('Search Controller', () => {
                     if (!err) {
                       models.Roles
                         .bulkCreate([
-                          TestHelper.adminRole,
-                          TestHelper.editorRole,
-                          TestHelper.subscriberRole
+                          testHelper.adminRole,
+                          testHelper.editorRole,
+                          testHelper.subscriberRole
                         ])
                         .then(() => {
                           done();
@@ -66,35 +66,33 @@ describe('Search Controller', () => {
         'querying the database for an unregistered user',
       (done) => {
         request
-          .get('/api/v1/search/users?q=antony')
+          .get('/api/v1/search/users/?q=antony')
           .set('Authorization', `${adminToken}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .end((err, response) => {
-            expect(response.status).to.equal(404);
-            expect(response.body.message).to.equal('User not found');
+            expect(response.status).to.equal(200);
+            expect(typeof response.body).to.equal('object');
             done();
           });
       }
     );
-    it(
-      'should not display search result for user with subscriber access',
-      (done) => {
-        models.Users.create(adminUser);
-        request
-          .get('/api/v1/search/users?q=admin')
-          .set('Authorization', `${subscriberToken}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .end((err, response) => {
-            expect(response.status).to.equal(401);
-            expect(response.body.message).to.equal(
-              'Access Denied. You can not see register subscribers'
-            );
-            done();
-          });
-      }
-    );
+    it('should not display search result for user' +
+     'with subscriber access', (done) => {
+      models.Users.create(adminUser);
+      request
+        .get('/api/v1/search/users?q=admin')
+        .set('Authorization', `${subscriberToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(403);
+          expect(response.body.message).to.equal(
+            'Access Denied. You can not see register subscribers'
+          );
+          done();
+        });
+    });
     it(
       'should display message " no key word supplied " if' +
         'no search term is used',

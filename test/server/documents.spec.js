@@ -1,24 +1,24 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-import { TestHelper } from '../TestHelper';
+import { testHelper } from '../testHelper';
 import models from '../../server/models';
-import JsonWebTokenHelper from '../../server/helpers/JsonWebTokenHelper';
+import jsonWebTokenHelper from '../../server/helpers/jsonWebTokenHelper';
 
 const app = require('../../build/server');
 
 const request = supertest.agent(app);
 
-const adminUser = TestHelper.specUser1;
-const subscriberUser = TestHelper.specUser3;
-const document1 = TestHelper.specDocument1;
-const document2 = TestHelper.specDocument2;
-const updateDocument = TestHelper.specUpdateDocument;
-const BadAccessDocument = TestHelper.specBadAccessDocument;
-const noTitleDocument = TestHelper.noTitleDocument;
-const noContentDocument = TestHelper.noContentDocument;
+const adminUser = testHelper.specUser1;
+const subscriberUser = testHelper.specUser3;
+const document1 = testHelper.specDocument1;
+const document2 = testHelper.specDocument2;
+const updateDocument = testHelper.specUpdateDocument;
+const BadAccessDocument = testHelper.specBadAccessDocument;
+const noTitleDocument = testHelper.noTitleDocument;
+const noContentDocument = testHelper.noContentDocument;
 
-const adminToken = JsonWebTokenHelper(adminUser);
-const subscriberToken = JsonWebTokenHelper(subscriberUser);
+const adminToken = jsonWebTokenHelper(adminUser);
+const subscriberToken = jsonWebTokenHelper(subscriberUser);
 const unauthorizedToken = '4nf30f';
 
 describe('Document Controller', () => {
@@ -52,9 +52,9 @@ describe('Document Controller', () => {
                     if (!err) {
                       models.Roles
                         .bulkCreate([
-                          TestHelper.adminRole,
-                          TestHelper.editorRole,
-                          TestHelper.subscriberRole
+                          testHelper.adminRole,
+                          testHelper.editorRole,
+                          testHelper.subscriberRole
                         ])
                         .then(() => {
                           done();
@@ -80,7 +80,7 @@ describe('Document Controller', () => {
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
-          expect(response.status).to.equal(403);
+          expect(response.status).to.equal(400);
           expect(response.body.message).to.equal(
             'Invalid document access, save document with your role'
           );
@@ -162,7 +162,7 @@ describe('Document Controller', () => {
       });
     });
     it('should successfully get all documents for an admin', (done) => {
-      models.Documents.bulkCreate([document1, document2]);
+      models.Documents.bulkCreate([document1, document2]).then(() => {});
       request
         .get('/api/v1/documents/')
         .set('Authorization', `${adminToken}`)
@@ -170,12 +170,10 @@ describe('Document Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(200);
-          expect(response.body.listDocuments[0].content).to.equal(
+          expect(response.body.documents[0].content).to.equal(
             'The best content'
           );
-          expect(response.body.listDocuments[1].title).to.equal(
-            'Computer Science'
-          );
+          expect(response.body.documents[1].title).to.equal('Computer Science');
           done();
         });
     });
@@ -198,8 +196,7 @@ describe('Document Controller', () => {
       }
     );
     it('should successfully get all documents a user has access to', (done) => {
-      models.Documents.create(document1).then(() => {
-      });
+      models.Documents.create(document1).then(() => {});
       request
         .get('/api/v1/documents/')
         .set('Authorization', `${subscriberToken}`)
@@ -207,10 +204,10 @@ describe('Document Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(200);
-          expect(response.body.listDocuments[0].title).to.equal(
+          expect(response.body.documents[0].title).to.equal(
             'My first document'
           );
-          expect(response.body.listDocuments[0].content).to.equal(
+          expect(response.body.documents[0].content).to.equal(
             'The best content'
           );
           done();

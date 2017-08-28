@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
-import JsonWebTokenHelper from '../helpers/JsonWebTokenHelper';
-import UserHelper from '../helpers/UserHelper';
-import AuthHelper from '../helpers/AuthHelper';
+import jsonWebTokenHelper from '../helpers/jsonWebTokenHelper';
+import userHelper from '../helpers/userHelper';
+import authHelper from '../helpers/authHelper';
 import models from '../models';
 
 const Users = models.Users;
@@ -16,12 +16,12 @@ dotenv.config();
    * throws an error.
    * @return {object}  returns response status and json data
    */
-const AuthController = {
+const authController = {
   login(request, response) {
-    UserHelper.LoginValidation(request);
+    userHelper.validateLogin(request);
     const errors = request.validationErrors();
     if (errors) {
-      response.status(400).send(UserHelper.ValidationErrorMessage(errors));
+      response.status(400).send(userHelper.validateErrorMessage(errors));
     } else {
       return Users.findOne({
         where: {
@@ -29,11 +29,11 @@ const AuthController = {
         }
       })
         .then((user) => {
-          AuthHelper.Auth(user, request, JsonWebTokenHelper, response);
+          authHelper.auth(user, request, jsonWebTokenHelper, response);
         })
-        .catch(error => UserHelper.DatabaseError(response, error));
+        .catch(error => userHelper.loginDatabaseErrorMessage(response, error));
     }
   }
 };
 
-export default AuthController;
+export default authController;

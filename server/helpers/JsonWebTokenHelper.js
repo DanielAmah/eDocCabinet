@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 * @param  {object} user generate user token which is user for authentication
 * @return {string} return a string of encoded data.
 */
-const JsonWebTokenHelper = user =>
+const jsonWebTokenHelper = user =>
   jwt.sign(
     {
       userId: user.id,
@@ -17,4 +17,4 @@ const JsonWebTokenHelper = user =>
       expiresIn: '72h'
     }
   );
-export default JsonWebTokenHelper;
+export default jsonWebTokenHelper;

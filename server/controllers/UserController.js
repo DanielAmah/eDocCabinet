@@ -1,11 +1,11 @@
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import models from '../models/';
-import JsonWebTokenHelper from '../helpers/JsonWebTokenHelper';
-import RoleHelper from '../helpers/RoleHelper';
-import PageHelper from '../helpers/PageHelper';
-import UserHelper from '../helpers/UserHelper';
-import DocumentHelper from '../helpers/DocumentHelper';
+import jsonWebTokenHelper from '../helpers/jsonWebTokenHelper';
+import roleHelper from '../helpers/roleHelper';
+import pageHelper from '../helpers/pageHelper';
+import userHelper from '../helpers/userHelper';
+import documentHelper from '../helpers/documentHelper';
 
 dotenv.config();
 
@@ -20,12 +20,12 @@ const Documents = models.Documents;
    * @param {object} response get response if signup is successful.
    * @return {object}  returns response status and json data
    */
-const UserController = {
+const userController = {
   signup(request, response) {
-    UserHelper.Validation(request);
+    userHelper.validateUserDetails(request);
     const errors = request.validationErrors();
     if (errors) {
-      response.status(400).send(UserHelper.ValidationErrorMessage(errors));
+      response.status(400).send(userHelper.validateErrorMessage(errors));
     } else {
       return Users.findOne({
         where: {
@@ -36,15 +36,17 @@ const UserController = {
         }
       }).then((checkuser) => {
         if (checkuser) {
-          return UserHelper.IfEmailExists(response);
+          return userHelper.ifEmailExistsErrorMessage(response);
         }
-        Users.create(UserHelper.RegisterUser(request))
-          .then((user) => {
-            const token = JsonWebTokenHelper(user);
-            const newUser = UserHelper.newUser(user);
-            response.status(201).send({ newUser, token });
+        Users.create(userHelper.registerUser(request))
+          .then((newUser) => {
+            const token = jsonWebTokenHelper(newUser);
+            const user = userHelper.newUser(newUser);
+            response.status(201).send({ user, token });
           })
-          .catch(error => UserHelper.CreateDatabaseError(response, error));
+          .catch(error =>
+            userHelper.createDatabaseErrorMessage(response, error)
+          );
       });
     }
   },
@@ -69,32 +71,32 @@ const UserController = {
    */
   listUsers(request, response) {
     if (
-      isNaN(PageHelper.GetLimit(request)) ||
-      isNaN(PageHelper.GetOffset(request))
+      isNaN(pageHelper.getLimit(request)) ||
+      isNaN(pageHelper.getOffset(request))
     ) {
       return response.status(400).send({
         message: 'limit and offset must be an number'
       });
     }
-    if (!RoleHelper.isAdmin(request)) {
-      return UserHelper.AccessDenied(response);
+    if (!roleHelper.isAdmin(request)) {
+      return userHelper.accessDeniedMessage(response);
     }
     return Users.findAndCountAll({
       attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
-      limit: PageHelper.GetLimit(request),
-      offset: PageHelper.GetOffset(request)
+      limit: pageHelper.getLimit(request),
+      offset: pageHelper.getOffset(request)
     })
-      .then((users) => {
-        const meta = PageHelper.GetPageMeta(
+      .then((listUsers) => {
+        const pageMeta = pageHelper.getPageMeta(
           request,
-          users,
-          PageHelper.GetLimit,
-          PageHelper.GetOffset
+          listUsers,
+          pageHelper.getLimit,
+          pageHelper.getOffset
         );
-        const userlist = users.rows;
-        response.status(200).send({ userlist, meta });
+        const users = listUsers.rows;
+        response.status(200).send({ users, pageMeta });
       })
-      .catch(error => UserHelper.ListDatabaseError(response, error));
+      .catch(error => userHelper.listDatabaseErrorMessage(response, error));
   },
   /**
    * listUsersAndDocuments: Enables users to get list of
@@ -108,15 +110,15 @@ const UserController = {
    */
   listUsersAndDocuments(request, response) {
     if (
-      isNaN(PageHelper.GetLimit(request)) ||
-      isNaN(PageHelper.GetOffset(request))
+      isNaN(pageHelper.getLimit(request)) ||
+      isNaN(pageHelper.getOffset(request))
     ) {
       return response.status(400).send({
         message: 'limit and offset must be an number'
       });
     }
-    if (!RoleHelper.isAdmin(request)) {
-      return UserHelper.UserAndDocumentAccessDenied(response);
+    if (!roleHelper.isAdmin(request)) {
+      return userHelper.userAndDocumentAccessDeniedMessage(response);
     }
     return Users.findAndCountAll({
       attributes: ['id', 'email', 'username', 'roleId', 'createdAt'],
@@ -126,21 +128,21 @@ const UserController = {
           as: 'myDocuments'
         }
       ],
-      limit: PageHelper.GetLimit(request),
-      offset: PageHelper.GetOffset(request)
+      limit: pageHelper.getLimit(request),
+      offset: pageHelper.getOffset(request)
     })
-      .then((users) => {
-        const meta = PageHelper.GetPageMeta(
+      .then((listUsers) => {
+        const pageMeta = pageHelper.getPageMeta(
           request,
-          users,
-          PageHelper.GetLimit,
-          PageHelper.GetOffset
+          listUsers,
+          pageHelper.getLimit,
+          pageHelper.getOffset
         );
-        const userlist = users.rows;
-        response.status(200).send({ userlist, meta });
+        const users = listUsers.rows;
+        response.status(200).send({ users, pageMeta });
       })
       .catch(error =>
-        UserHelper.ListUserAndDocumentDatabaseError(response, error)
+        userHelper.listUserAndDocumentDatabaseErrorMessage(response, error)
       );
   },
   /**
@@ -153,28 +155,28 @@ const UserController = {
    * @return {object}  returns response status and json data
    */
   updateUsers(request, response) {
-    UserHelper.Validation(request);
+    userHelper.validateUserDetails(request);
     const errors = request.validationErrors();
     if (errors) {
-      response.status(400).send(UserHelper.ValidationErrorMessage(errors));
+      response.status(400).send(userHelper.ValidationErrorMessage(errors));
     } else {
       if (!Number.isInteger(Number(request.params.userId))) {
-        return UserHelper.CheckIdIsNumber(response);
+        return userHelper.checkIdIsNumberErrorMessage(response);
       }
-      if (!(RoleHelper.isSubscriber(request) || RoleHelper.isAdmin(request))) {
-        return UserHelper.UpdateAccessDenied(response);
+      if (!(roleHelper.isSubscriber(request) || roleHelper.isAdmin(request))) {
+        return userHelper.showUpdateAccessDeniedMessage(response);
       }
       return Users.findOne(
-        UserHelper.QueryDatabaseEmailAndUsername(request)
+        userHelper.queryDatabaseEmailAndUsername(request)
       ).then((checkuser) => {
         if (checkuser) {
-          return UserHelper.IfEmailExists(response);
+          return userHelper.ifEmailExistsErrorMessage(response);
         }
-        Users.find(UserHelper.QueryDatabaseId(request));
+        Users.find(userHelper.queryDatabaseId(request));
         return Users.findById(request.params.userId)
           .then((user) => {
             if (!user) {
-              UserHelper.UserNotFound(response);
+              userHelper.showUserNotFoundMessage(response);
             }
             const password = request.body.password
               ? bcrypt.hashSync(request.body.password, bcrypt.genSaltSync(10))
@@ -193,7 +195,9 @@ const UserController = {
                 })
               );
           })
-          .catch(error => UserHelper.UpdateDatabaseError(response, error));
+          .catch(error =>
+            userHelper.updateDatabaseErrorMessage(response, error)
+          );
       });
     }
   },
@@ -206,26 +210,26 @@ const UserController = {
    * @return {object}  returns response status and json data
    */
   updateUsersRole(request, response) {
-    UserHelper.RoleValidation(request);
+    userHelper.validateRoleId(request);
     const errors = request.validationErrors();
     if (errors) {
-      response.status(400).send(UserHelper.ValidationErrorMessage(errors));
+      response.status(400).send(userHelper.validateErrorMessage(errors));
     } else {
-      UserHelper.ChangeToLowerCase(request);
-      if (!RoleHelper.isAdmin(request)) {
-        return UserHelper.UpdateAccessDenied(response);
+      userHelper.changeToLowerCase(request);
+      if (!roleHelper.isAdmin(request)) {
+        return userHelper.updateAccessDenied(response);
       }
       return Users.findOne(
-        UserHelper.QueryDatabaseTitle(request)
+        userHelper.QueryDatabaseTitle(request)
       ).then((checkrole) => {
         if (checkrole) {
-          return UserHelper.IfRoleExists(response);
+          return userHelper.IfRoleExists(response);
         }
-        Users.find(UserHelper.QueryDatabaseId(request));
+        Users.find(userHelper.QueryDatabaseId(request));
         return Users.findById(request.params.userId)
           .then((user) => {
             if (!user) {
-              UserHelper.UserNotFound(response);
+              userHelper.showUserNotFoundMessage(response);
             }
             return user
               .update({
@@ -238,7 +242,9 @@ const UserController = {
                 })
               );
           })
-          .catch(error => UserHelper.UpdateRoleDatabaseError(response, error));
+          .catch(error =>
+            userHelper.updateRoleDatabaseErrorMessage(response, error)
+          );
       });
     }
   },
@@ -253,10 +259,10 @@ const UserController = {
    */
   findUsers(request, response) {
     if (!Number.isInteger(Number(request.params.userId))) {
-      return UserHelper.CheckIdIsNumber(response);
+      return userHelper.checkIdIsNumberErrorMessage(response);
     }
-    if (!(RoleHelper.isSubscriber(request) || RoleHelper.isAdmin(request))) {
-      return UserHelper.FindUsersAccessDenied(response);
+    if (!(roleHelper.isSubscriber(request) || roleHelper.isAdmin(request))) {
+      return userHelper.findUsersAccessDeniedMessage(response);
     }
     return Users.find({
       where: {
@@ -266,11 +272,11 @@ const UserController = {
     })
       .then((user) => {
         if (!user) {
-          UserHelper.UserNotFound(response);
+          userHelper.showUserNotFoundMessage(response);
         }
         return response.status(200).send(user);
       })
-      .catch(error => UserHelper.FindUserDatabaseError(response, error));
+      .catch(error => userHelper.FindUserDatabaseError(response, error));
   },
   /**
    * deleteUsers: Enables users and admin users to delete account by ID
@@ -283,16 +289,16 @@ const UserController = {
    */
   deleteUsers(request, response) {
     if (!Number.isInteger(Number(request.params.userId))) {
-      return UserHelper.CheckIdIsNumber(response);
+      return userHelper.checkIdIsNumberErrorMessage(response);
     }
-    if (!(RoleHelper.isSubscriber(request) || RoleHelper.isAdmin(request))) {
-      UserHelper.DeleteAccessDenied(response);
+    if (!(roleHelper.isSubscriber(request) || roleHelper.isAdmin(request))) {
+      userHelper.deleteAccessDeniedMessage(response);
     }
     return Users.findById(request.params.userId)
       .then((user) => {
-        UserHelper.DeleteUserLogic(user, response);
+        userHelper.deleteUserLogic(user, response);
       })
-      .catch(error => UserHelper.DeleteDatabaseError(response, error));
+      .catch(error => userHelper.deleteAccessDeniedMessage(response, error));
   },
   /**
    * findUserDocument: Enables users get documents that belongs to the user
@@ -303,10 +309,10 @@ const UserController = {
    */
   findUserDocument(request, response) {
     if (!Number.isInteger(Number(request.params.userId))) {
-      return UserHelper.CheckIdIsNumber(response);
+      return userHelper.checkIdIsNumberErrorMessage(response);
     }
-    if (!(RoleHelper.isSubscriber(request) || RoleHelper.isAdmin(request))) {
-      return UserHelper.DocumentAccessDenied(response);
+    if (!(roleHelper.isSubscriber(request) || roleHelper.isAdmin(request))) {
+      return userHelper.documentAccessDeniedMessage(response);
     }
     return Documents.findAll({
       where: {
@@ -314,14 +320,16 @@ const UserController = {
       },
       attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
     })
-      .then((documents) => {
-        if (!documents) {
-          DocumentHelper.DocumentNotFound(documents);
+      .then((document) => {
+        if (!document) {
+          documentHelper.showUserNotFoundMessage(document);
         }
-        return response.status(200).send(documents);
+        return response.status(200).send(document);
       })
-      .catch(error => UserHelper.FindUserDocDatabaseError(response, error));
+      .catch(error =>
+        userHelper.findUserDocDatabaseErrorMessage(response, error)
+      );
   }
 };
 
-export default UserController;
+export default userController;

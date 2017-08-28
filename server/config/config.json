@@ -8,7 +8,7 @@
     "port": 5432
   },
   "test": {
-   "use_env_variable": "DEV_URL",
+ "use_env_variable": "DEV_URL",
     "dialect": "postgres"
   },
   "production": {

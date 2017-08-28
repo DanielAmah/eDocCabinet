@@ -1,16 +1,16 @@
 /* eslint-disable no-unused-expressions */
 import supertest from 'supertest';
 import { expect } from 'chai';
-import { TestHelper, defaultPassword } from '../TestHelper';
+import { testHelper, defaultPassword } from '../testHelper';
 import models from '../../server/models';
 
 const app = require('../../build/server');
 
 const request = supertest.agent(app);
 
-const adminUser = TestHelper.specUser1;
-const subscriberUser = TestHelper.specUser3;
-const specWrongUser = TestHelper.specWrongUser;
+const adminUser = testHelper.specUser1;
+const subscriberUser = testHelper.specUser3;
+const specWrongUser = testHelper.specWrongUser;
 
 describe('Authentication Controller', () => {
   beforeEach((done) => {
@@ -43,9 +43,9 @@ describe('Authentication Controller', () => {
                     if (!err) {
                       models.Roles
                         .bulkCreate([
-                          TestHelper.adminRole,
-                          TestHelper.editorRole,
-                          TestHelper.subscriberRole
+                          testHelper.adminRole,
+                          testHelper.editorRole,
+                          testHelper.subscriberRole
                         ])
                         .then((err) => {
                           if (!err) {
@@ -88,8 +88,8 @@ describe('Authentication Controller', () => {
           password: 'notthepassword'
         })
         .end((err, response) => {
-          expect(response.status).to.equal(403);
-          expect(response.body.message).to.equal('Password is incorrect');
+          expect(response.status).to.equal(401);
+          expect(response.body.message).to.equal('Wrong email/password');
           done();
         });
     });

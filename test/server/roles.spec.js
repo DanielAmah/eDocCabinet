@@ -1,17 +1,17 @@
 import supertest from 'supertest';
 import { expect } from 'chai';
-import { TestHelper } from '../TestHelper';
+import { testHelper } from '../testHelper';
 import models from '../../server/models';
-import JsonWebTokenHelper from '../../server/helpers/JsonWebTokenHelper';
+import jsonWebTokenHelper from '../../server/helpers/jsonWebTokenHelper';
 
 const app = require('../../build/server');
 
 const request = supertest.agent(app);
-const adminUser = TestHelper.specUser1;
-const subscriberUser = TestHelper.specUser3;
+const adminUser = testHelper.specUser1;
+const subscriberUser = testHelper.specUser3;
 
-const adminToken = JsonWebTokenHelper(adminUser);
-const subscriberToken = JsonWebTokenHelper(subscriberUser);
+const adminToken = jsonWebTokenHelper(adminUser);
+const subscriberToken = jsonWebTokenHelper(subscriberUser);
 
 describe('Role Controller', () => {
   beforeEach((done) => {
@@ -44,9 +44,9 @@ describe('Role Controller', () => {
                     if (!err) {
                       models.Roles
                         .bulkCreate([
-                          TestHelper.adminRole,
-                          TestHelper.editorRole,
-                          TestHelper.subscriberRole
+                          testHelper.adminRole,
+                          testHelper.editorRole,
+                          testHelper.subscriberRole
                         ])
                         .then(() => {
                           done();
@@ -82,7 +82,8 @@ describe('Role Controller', () => {
         .expect('Content-Type', /json/)
         .end((err, response) => {
           expect(response.status).to.equal(201);
-          expect(response.body.message).to.equal('Roles created successfully');
+          expect(response.body.message).to.equal('Role created successfully');
+          expect(response.body.title).to.equal('publisher');
 
           done();
         });
@@ -112,7 +113,7 @@ describe('Role Controller', () => {
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
-          expect(response.status).to.equal(401);
+          expect(response.status).to.equal(403);
           expect(response.body.message).to.equal(
             'Access Denied. You can not create a new role'
           );
@@ -150,7 +151,7 @@ describe('Role Controller', () => {
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, response) => {
-          expect(response.status).to.equal(401);
+          expect(response.status).to.equal(403);
           expect(response.body.message).to.equal(
             'Access Denied. You can not create a new role'
           );
@@ -166,23 +167,21 @@ describe('Role Controller', () => {
         done();
       });
     });
-    it(
-      'should successfully get all roles and users with admin access',
-      (done) => {
-        request
-          .get('/api/v1/roles-users/')
-          .set('Authorization', `${adminToken}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .end((err, response) => {
-            expect(response.status).to.equal(200);
-            expect(response.body[0].title).to.equal('admin');
-            expect(response.body[1].title).to.equal('editor');
-            expect(response.body[2].title).to.equal('subscriber');
-            done();
-          });
-      }
-    );
+    it('should successfully get all roles and users' +
+     'with admin access', (done) => {
+      request
+        .get('/api/v1/roles-users/')
+        .set('Authorization', `${adminToken}`)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .end((err, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body[0].title).to.equal('admin');
+          expect(response.body[1].title).to.equal('editor');
+          expect(response.body[2].title).to.equal('subscriber');
+          done();
+        });
+    });
     it(
       'should not successfully get all roles and users' +
         'with subscriber access',
@@ -193,7 +192,7 @@ describe('Role Controller', () => {
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .end((err, response) => {
-            expect(response.status).to.equal(401);
+            expect(response.status).to.equal(403);
             expect(response.body.message).to.equal(
               'Access Denied. You can not create a new role'
             );

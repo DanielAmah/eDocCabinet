@@ -1,19 +1,20 @@
 import bcrypt from 'bcrypt';
-import UserHelper from './UserHelper';
+import userHelper from './userHelper';
 
-const AuthHelper = {
-  Auth(user, request, JsonWebTokenHelper, response) {
-    if (user) {
-      const passkey = bcrypt.compareSync(request.body.password, user.password);
+const authHelper = {
+  auth(oldUser, request, jsonWebTokenHelper, response) {
+    if (oldUser) {
+      const passkey = bcrypt.compareSync(
+        request.body.password, oldUser.password);
       if (!passkey) {
-        return UserHelper.InCorrectPassword(response);
+        return userHelper.inCorrectPasswordMessage(response);
       }
-      const token = JsonWebTokenHelper(user);
-      const oldUser = UserHelper.OldUser(user);
-      response.status(200).send({ oldUser, token });
+      const token = jsonWebTokenHelper(oldUser);
+      const user = userHelper.oldUser(oldUser);
+      response.status(200).send({ user, token });
     } else {
-      return UserHelper.UserNotFound(response);
+      return userHelper.showUserNotFoundMessage(response);
     }
   }
 };
-export default AuthHelper;
+export default authHelper;

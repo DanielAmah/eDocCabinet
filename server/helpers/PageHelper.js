@@ -1,28 +1,28 @@
-import PaginationUtil from '../utils/PaginationUtil';
+import paginationUtil from '../utils/paginationUtil';
 
-const PageHelper = {
-  GetLimit(request) {
+const pageHelper = {
+  getLimit(request) {
     const limit = request.query && request.query.limit
       ? request.query.limit
       : 10;
     return limit;
   },
-  GetOffset(request) {
+  getOffset(request) {
     const offset = request.query && request.query.offset
       ? request.query.offset
       : 0;
     return offset;
   },
-  GetPageMeta(request, users, GetLimit, GetOffset) {
-    const totalCount = users.count;
-    const pageSize = Number(PaginationUtil.getPageSize(GetLimit(request)));
-    const pageCount = PaginationUtil.getPageCount(
+  getPageMeta(request, listUsers, getLimit, getOffset) {
+    const totalCount = listUsers.count;
+    const pageSize = Number(paginationUtil.getPageSize(getLimit(request)));
+    const pageCount = paginationUtil.getPageCount(
       totalCount,
-      GetLimit(request)
+      getLimit(request)
     );
-    const page = PaginationUtil.getCurrentPage(
-      GetLimit(request),
-      GetOffset(request)
+    const page = paginationUtil.getCurrentPage(
+      getLimit(request),
+      getOffset(request)
     );
     const meta = {
       page,
@@ -32,16 +32,16 @@ const PageHelper = {
     };
     return meta;
   },
-  GetDocumentPageMeta(request, documents, GetLimit, GetOffset) {
+  getDocumentPageMeta(request, documents, getLimit, getOffset) {
     const totalCount = documents.count;
-    const pageSize = Number(PaginationUtil.getPageSize(GetLimit(request)));
-    const pageCount = PaginationUtil.getPageCount(
+    const pageSize = Number(paginationUtil.getPageSize(getLimit(request)));
+    const pageCount = paginationUtil.getPageCount(
       totalCount,
-      GetLimit(request)
+      getLimit(request)
     );
-    const page = PaginationUtil.getCurrentPage(
-      GetLimit(request),
-      GetOffset(request)
+    const page = paginationUtil.getCurrentPage(
+      getLimit(request),
+      getOffset(request)
     );
     const meta = {
       page,
@@ -52,4 +52,4 @@ const PageHelper = {
     return meta;
   }
 };
-export default PageHelper;
+export default pageHelper;

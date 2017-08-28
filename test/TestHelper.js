@@ -6,7 +6,7 @@ const hashPassword = plainPassword =>
 
 const defaultPassword = 'password';
 
-const TestHelper = {
+const testHelper = {
   adminRole: {
     title: 'admin'
   },
@@ -128,4 +128,4 @@ const TestHelper = {
   }
 };
 
-export { TestHelper, defaultPassword };
+export { testHelper, defaultPassword };
