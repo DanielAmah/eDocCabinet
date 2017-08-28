@@ -444,10 +444,12 @@ describe('Document Controller', () => {
       'should allow an authorize admin to successfully' +
        'delete a document',
       (done) => {
-        models.Documents.create(document1).then(() => {});
+        models.Documents.create(document2).then(() => {
+          //
+        });
         request
           .delete('/api/v1/documents/1')
-          .set('Authorization', `${adminToken}`)
+          .set('Authorization', `${subscriberToken}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .end((err, response) => {
