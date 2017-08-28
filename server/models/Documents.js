@@ -1,8 +1,10 @@
 /**
    * Defines Document model
-   * @param {object} sequelize
-   * @param {object} DataTypes
-   * @return {object} - returns instance of the model
+   * @param {object} sequelize - use sequelize.define to
+   * define Document schema
+   * @param {object} DataTypes - show the type of data for
+   * each field.
+   * @return {object} - returns instance of the Document model
    */
 export default (sequelize, DataTypes) => {
   const Documents = sequelize.define('Documents', {
