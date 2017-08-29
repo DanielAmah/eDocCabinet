@@ -259,7 +259,7 @@ describe('Document Controller', () => {
       'should successfully return the document found for ' +
         'an authorized admin',
       (done) => {
-        models.Documents.create(document1);
+        models.Documents.create(document1).then(() => {});
         request
           .get('/api/v1/documents/1')
           .set('Authorization', `${adminToken}`)
