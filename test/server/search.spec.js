@@ -133,7 +133,7 @@ describe('Search Controller', () => {
       'should successfully return a document if a document exists' +
         'and it is accessed by an admin',
       (done) => {
-        models.Documents.create(document2).then(() => {});
+        models.Documents.BulkCreate([document1, document2]).then(() => {});
         request
           .get('/api/v1/search/documents/?q=Comp')
           .set('Authorization', `${adminToken}`)
@@ -141,7 +141,7 @@ describe('Search Controller', () => {
           .expect('Content-Type', /json/)
           .end((err, response) => {
             expect(response.status).to.equal(200);
-            expect(response.body[0].title).to.equal('Computer Science');
+            expect(response.body[0].title).to.equal('My first document');
             expect(response.body[0].access).to.equal('public');
             done();
           });
