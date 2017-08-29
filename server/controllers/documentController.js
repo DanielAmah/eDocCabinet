@@ -1,29 +1,29 @@
-import RoleHelper from '../helpers/RoleHelper';
-import DocumentHelper from '../helpers/DocumentHelper';
-import PageHelper from '../helpers/PageHelper';
+import roleHelper from '../helpers/roleHelper';
+import documentHelper from '../helpers/documentHelper';
+import pageHelper from '../helpers/pageHelper';
 import models from '../models';
 
 const Documents = models.Documents;
 
-const DocumentController = {
+const documentController = {
   /**
    * newDocument: This allows registered users create documents
-   * @function createDocument
+   * @function newDocument
    * @param {object} request send a request to create a new document
    * @param {object} response receive a response if the document creation is
    *  successful or throws an error.
    * @return {object} - returns response status and json data
    */
   newDocument(request, response) {
-    DocumentHelper.Validation(request);
+    documentHelper.validateDocumentBody(request);
     const errors = request.validationErrors();
     if (errors) {
-      response.status(400).send(DocumentHelper.ValidationErrorMessage(errors));
+      response.status(400).send(documentHelper.validateErrorMessage(errors));
     } else {
-      if (!DocumentHelper.ValidAccess(request)) {
-        return DocumentHelper.InvalidDocumentAccess(response);
+      if (!documentHelper.validateAccess(request)) {
+        return documentHelper.invalidDocumentAccessMessage(response);
       }
-      DocumentHelper.DocumentCheck(request, response);
+      documentHelper.checkDocumentContentType(request, response);
       return Documents.findOne({
         where: {
           title: request.body.title
@@ -34,13 +34,13 @@ const DocumentController = {
             message: 'A document with this title has been created'
           });
         }
-        Documents.create(DocumentHelper.CreateDocument(request))
-          .then(newDocument =>
-            response
-              .status(201)
-              .send(DocumentHelper.CreateResponse(newDocument))
+        Documents.create(documentHelper.createDocument(request))
+          .then(document =>
+            response.status(201).send(documentHelper.createResponse(document))
           )
-          .catch(error => DocumentHelper.CreateDatabaseError(response, error));
+          .catch(error =>
+            documentHelper.createDatabaseErrorMessage(response, error)
+          );
       });
     }
   },
@@ -55,15 +55,15 @@ const DocumentController = {
    * @return {object} - returns response status and json data
    */
   updateDocument(request, response) {
-    DocumentHelper.Validation(request);
+    documentHelper.validateDocumentBody(request);
     const errors = request.validationErrors();
     if (errors) {
-      response.status(400).send(DocumentHelper.ValidationErrorMessage(errors));
+      response.status(400).send(documentHelper.validateErrorMessage(errors));
     } else {
       if (!Number.isInteger(Number(request.params.documentId))) {
-        return DocumentHelper.CheckIdIsNumber(response);
+        return documentHelper.checkIdErrorMessage(response);
       }
-      DocumentHelper.DocumentCheck(request, response);
+      documentHelper.checkDocumentContentType(request, response);
       return Documents.findOne({
         where: {
           title: request.body.title
@@ -81,15 +81,17 @@ const DocumentController = {
           }
         }).then((document) => {
           if (!document) {
-            DocumentHelper.UpdateDocumentNotExist(response);
+            documentHelper.useDocumentNotExistMessage(response);
           }
           return document
-            .update(DocumentHelper.UpdateDocument(request, document))
+            .update(documentHelper.updateDocument(request, document))
             .then(() =>
-              response.status(200).send(DocumentHelper.UpdateResponse(document))
+              response
+                .status(200)
+                .send(documentHelper.updateDocumentResponse(document))
             )
             .catch(error =>
-              DocumentHelper.UpdateDatabaseError(response, error)
+              documentHelper.updateDatabaseErrorMessage(response, error)
             );
         });
       });
@@ -108,46 +110,50 @@ const DocumentController = {
    */
   showDocuments(request, response) {
     if (
-      isNaN(PageHelper.GetLimit(request)) ||
-      isNaN(PageHelper.GetOffset(request))
+      isNaN(pageHelper.getLimit(request)) ||
+      isNaN(pageHelper.getOffset(request))
     ) {
       return response.status(400).send({
         message: 'limit and offset must be an number'
       });
     }
-    if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
+    if (roleHelper.isAdmin(request) || roleHelper.isEditor(request)) {
       return Documents.findAndCountAll({
         attributes: ['id', 'title', 'content', 'access', 'owner', 'createdAt'],
-        limit: PageHelper.GetLimit(request),
-        offset: PageHelper.GetOffset(request)
+        limit: pageHelper.getLimit(request),
+        offset: pageHelper.getOffset(request)
       })
-        .then((documents) => {
-          const meta = PageHelper.GetDocumentPageMeta(
+        .then((showDocuments) => {
+          const pageMeta = pageHelper.getDocumentPageMeta(
             request,
-            documents,
-            PageHelper.GetLimit,
-            PageHelper.GetOffset
+            showDocuments,
+            pageHelper.getLimit,
+            pageHelper.getOffset
           );
-          const listDocuments = documents.rows;
-          response.status(200).send({ listDocuments, meta });
+          const documents = showDocuments.rows;
+          response.status(200).send({ documents, pageMeta });
         })
-        .catch(error => DocumentHelper.ListDatabaseError(response, error));
+        .catch(error =>
+          documentHelper.listDatabaseErrorMessage(response, error)
+        );
     }
     if (request.decoded.userId) {
       return Documents.findAndCountAll(
-        DocumentHelper.ShowQueryDatabase(request)
+        documentHelper.showQueryDatabase(request)
       )
-        .then((documents) => {
-          const meta = PageHelper.GetDocumentPageMeta(
+        .then((listDocuments) => {
+          const meta = pageHelper.getDocumentPageMeta(
             request,
-            documents,
-            PageHelper.GetLimit,
-            PageHelper.GetOffset
+            listDocuments,
+            pageHelper.getLimit,
+            pageHelper.getOffset
           );
-          const listDocuments = documents.rows;
-          response.status(200).send({ listDocuments, meta });
+          const documents = listDocuments.rows;
+          response.status(200).send({ documents, meta });
         })
-        .catch(error => DocumentHelper.ListDatabaseError(response, error));
+        .catch(error =>
+          documentHelper.listDatabaseErrorMessage(response, error)
+        );
     }
   },
   /**
@@ -163,29 +169,29 @@ const DocumentController = {
    */
   findDocument(request, response) {
     if (!Number.isInteger(Number(request.params.documentId))) {
-      return DocumentHelper.CheckIdIsNumber(response);
+      return documentHelper.checkIdErrorMessage(response);
     }
-    if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
+    if (roleHelper.isAdmin(request) || roleHelper.isEditor(request)) {
       return Documents.find({
         where: { id: request.params.documentId },
         attributes: ['id', 'title', 'access', 'content', 'owner', 'createdAt']
       })
         .then((document) => {
           if (!document) {
-            return DocumentHelper.DocumentNotExist(response);
+            return documentHelper.useDocumentNotExistMessage(response);
           }
           return response.status(200).send(document);
         })
-        .catch(error => DocumentHelper.FindDatabaseError(response, error));
+        .catch(error => documentHelper.FindDatabaseError(response, error));
     }
-    return Documents.find(DocumentHelper.FindQueryADocument(request))
+    return Documents.find(documentHelper.findQueryADocument(request))
       .then((document) => {
         if (!document) {
-          return DocumentHelper.DocumentNotExist(response);
+          return documentHelper.useDocumentNotExistMessage(response);
         }
         return response.status(200).send(document);
       })
-      .catch(error => DocumentHelper.FindDatabaseError(response, error));
+      .catch(error => documentHelper.findDatabaseErrorMessage(response, error));
   },
 
   /**
@@ -201,18 +207,18 @@ const DocumentController = {
    */
   deleteDocument(request, response) {
     if (!Number.isInteger(Number(request.params.documentId))) {
-      return DocumentHelper.CheckIdIsNumber(response);
+      return documentHelper.checkIdErrorMessage(response);
     }
-    if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
+    if (roleHelper.isAdmin(request) || roleHelper.isEditor(request)) {
       return Documents.find({
         where: {
           id: request.params.documentId
         }
       }).then(document =>
-        DocumentHelper.DeleteDocumentLogic(
-          DocumentHelper.DocumentNotExist,
+        documentHelper.deleteDocumentLogic(
+          documentHelper.useDocumentNotExistMessage,
           response,
-          DocumentHelper.DeleteDatabaseError,
+          documentHelper.deleteDatabaseErrorMessage,
           document
         )
       );
@@ -223,13 +229,13 @@ const DocumentController = {
         userId: request.decoded.userId
       }
     }).then((document) => {
-      DocumentHelper.DeleteDocumentLogic(
-        DocumentHelper.DocumentNotExist,
+      documentHelper.deleteDocumentLogic(
+        documentHelper.useDocumentNotExistMessage,
         response,
-        DocumentHelper.DeleteDatabaseError,
+        documentHelper.deleteDatabaseErrorMessage,
         document
       );
     });
   }
 };
-export default DocumentController;
+export default documentController;

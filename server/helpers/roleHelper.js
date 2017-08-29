@@ -2,7 +2,7 @@ import omit from 'omit';
 /**
  * controllers helper functions
  */
-const RoleHelper = {
+const roleHelper = {
   /**
    * isAdmin - Verify if the requester is an admin
    * @param  {Object} request send a request to check
@@ -28,40 +28,40 @@ const RoleHelper = {
   isSubscriber(request) {
     return request.decoded.userId === Number(request.params.userId);
   },
-  AccessDenied(response) {
-    return response.status(401).send({
+  showAccessDeniedMessage(response) {
+    return response.status(403).send({
       message: 'Access Denied. You can not create a new role'
     });
   },
-  DatabaseError(response) {
+  showDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while creating new role'
     });
   },
-  ListDatabaseError(response) {
+  showListDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while listing roles'
     });
   },
-  ListRolesAndUsersDatabaseError(response) {
+  showListRolesAndUsersDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while listing roles and users'
     });
   },
-  Validation(request) {
+  validateTitle(request) {
     request.checkBody('title', 'Enter a valid role id').isLength({ min: 1 });
   },
-  ValidationErrorMessage(errors) {
+  validateErrorMessage(errors) {
     const exclude = ['param', 'value'];
     const error = errors.map(omit(exclude));
     const ErrorMessage = error;
     return ErrorMessage;
   },
-  IfRoleExists(response) {
+  ifRoleExistsErrorMessage(response) {
     return response.status(409).send({
       message: 'Role Already Exists'
     });
   }
 };
 
-export default RoleHelper;
+export default roleHelper;

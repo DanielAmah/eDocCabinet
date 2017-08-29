@@ -1,8 +1,10 @@
 /**
    * Defines Users model
-   * @param {object} sequelize
-   * @param {object} DataTypes
-   * @return {object} - returns instance of the model
+   * @param {object} sequelize - use sequelize.define to
+   * define the User schema
+   * @param {object} DataTypes - show the type of data for
+   * each field
+   * @return {object} - returns instance of the Users model
    */
 export default (sequelize, DataTypes) => {
   const Users = sequelize.define('Users', {

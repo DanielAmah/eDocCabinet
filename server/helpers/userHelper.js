@@ -1,8 +1,8 @@
 import omit from 'omit';
 import bcrypt from 'bcrypt';
 
-const UserHelper = {
-  OldUser(user) {
+const userHelper = {
+  oldUser(user) {
     const LoginUser = {
       success: true,
       userId: user.id,
@@ -10,7 +10,7 @@ const UserHelper = {
     };
     return LoginUser;
   },
-  RegisterUser(request) {
+  registerUser(request) {
     const password = bcrypt.hashSync(
       request.body.password,
       bcrypt.genSaltSync(10)
@@ -32,7 +32,7 @@ const UserHelper = {
     };
     return RegisterUser;
   },
-  QueryDatabaseTitle(request) {
+  queryDatabaseTitle(request) {
     const queryDatabase = {
       where: {
         $or: [
@@ -44,7 +44,7 @@ const UserHelper = {
     };
     return queryDatabase;
   },
-  QueryDatabaseId(request) {
+  queryDatabaseId(request) {
     const queryDatabase = {
       where: {
         $or: [
@@ -56,7 +56,7 @@ const UserHelper = {
     };
     return queryDatabase;
   },
-  QueryDatabaseEmailAndUsername(request) {
+  queryDatabaseEmailAndUsername(request) {
     const queryDatabase = {
       where: {
         $or: [
@@ -71,7 +71,7 @@ const UserHelper = {
     };
     return queryDatabase;
   },
-  SearchQueryDatabase(request) {
+  searchQueryDatabase(request) {
     const searchQuery = {
       where: {
         $or: [
@@ -89,119 +89,119 @@ const UserHelper = {
     };
     return searchQuery;
   },
-  DatabaseError(response) {
+  loginDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while authenticating user'
     });
   },
-  ListDatabaseError(response) {
+  listDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while listing user'
     });
   },
-  ListUserAndDocumentDatabaseError(response) {
+  listUserAndDocumentDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while listing user with documents'
     });
   },
-  UpdateDatabaseError(response) {
+  updateDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while updating user'
     });
   },
-  UpdateRoleDatabaseError(response) {
+  updateRoleDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while updating user role'
     });
   },
-  FindUserDatabaseError(response) {
+  findUserDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while retrieving a user'
     });
   },
-  FindUserDocDatabaseError(response) {
+  findUserDocDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while retrieving a user documents'
     });
   },
-  DeleteDatabaseError(response) {
+  deleteDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while deleting a user'
     });
   },
-  CreateDatabaseError(response) {
+  createDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while creating user'
     });
   },
-  SearchDatabaseError(response) {
+  searchDatabaseErrorMessage(response) {
     response.status(500).send({
       message: 'Error occurred while retrieving user'
     });
   },
-  InCorrectPassword(response) {
-    response.status(403).send({ message: 'Password is incorrect' });
+  inCorrectPasswordMessage(response) {
+    response.status(401).send({ message: 'Wrong email/password' });
   },
-  UserNotFound(response) {
+  showUserNotFoundMessage(response) {
     response.status(404).send({ message: 'User not found' });
   },
-  AccessDenied(response) {
-    return response.status(401).send({
+  accessDeniedMessage(response) {
+    return response.status(403).send({
       message: 'Access Denied. You can not see register subscribers'
     });
   },
-  DocumentAccessDenied(response) {
-    return response.status(401).send({
+  documentAccessDeniedMessage(response) {
+    return response.status(403).send({
       message: 'Access Denied. You can not see documents of other subscribers'
     });
   },
-  UserAndDocumentAccessDenied(response) {
-    return response.status(401).send({
+  userAndDocumentAccessDeniedMessage(response) {
+    return response.status(403).send({
       message: 'Access Denied. You can not see subscribers and their documents'
     });
   },
-  UpdateAccessDenied(response) {
-    return response.status(401).send({
+  showUpdateAccessDeniedMessage(response) {
+    return response.status(403).send({
       message: 'Access Denied. You can not update other register subscribers'
     });
   },
-  FindUsersAccessDenied(response) {
-    return response.status(401).send({
+  findUsersAccessDeniedMessage(response) {
+    return response.status(403).send({
       message: 'Access Denied. You can not find other register subscribers'
     });
   },
-  DeleteAccessDenied(response) {
-    return response.status(401).send({
+  deleteAccessDeniedMessage(response) {
+    return response.status(403).send({
       message: 'Access Denied. You can not remove other register subscribers'
     });
   },
-  CheckIdIsNumber(response) {
+  checkIdIsNumberErrorMessage(response) {
     return response.status(400).send({
       message: 'Invalid User ID'
     });
   },
-  ChangeToLowerCase(request) {
+  changeToLowerCase(request) {
     if (request.body.username) {
       request.body.username = request.body.username.toLowerCase();
       request.body.email = request.body.email.toLowerCase();
     }
   },
-  IfEmailExists(response) {
+  ifEmailExistsErrorMessage(response) {
     return response.status(409).send({
       message: 'Username / Email Already Exists'
     });
   },
-  IfRoleExists(response) {
+  ifRoleExistsErrorMessage(response) {
     return response.status(409).send({
       message: 'Role Already Exists'
     });
   },
-  CheckQuery(response) {
+  checkQueryMessage(response) {
     response.status(400).send({
       message: 'No key word supplied'
     });
   },
-  Validation(request) {
+  validateUserDetails(request) {
     request
       .checkBody(
         'email',
@@ -215,7 +215,7 @@ const UserHelper = {
       .checkBody('password', 'Enter a valid password of more than 5 characters')
       .isLength({ min: 5 });
   },
-  LoginValidation(request) {
+  validateLogin(request) {
     request
       .checkBody('username', 'Enter a valid username of more than 5 characters')
       .isLength({ min: 5 });
@@ -223,22 +223,22 @@ const UserHelper = {
       .checkBody('password', 'Enter a valid password of more than 5 characters')
       .isLength({ min: 5 });
   },
-  RoleValidation(request) {
+  validateRoleId(request) {
     request.checkBody('roleId', 'Enter a valid role id').isInt();
     request
       .checkParams('userId', 'Enter a valid user id to update role')
       .notEmpty()
       .isInt();
   },
-  ValidationErrorMessage(errors) {
+  validateErrorMessage(errors) {
     const exclude = ['param', 'value'];
     const error = errors.map(omit(exclude));
     const ErrorMessage = error;
     return ErrorMessage;
   },
-  DeleteUserLogic(user, response) {
+  deleteUserLogic(user, response) {
     if (!user) {
-      return UserHelper.UserNotFound(response);
+      return userHelper.showUserNotFoundMessage(response);
     }
     return user
       .destroy()
@@ -247,4 +247,4 @@ const UserHelper = {
       );
   }
 };
-export default UserHelper;
+export default userHelper;

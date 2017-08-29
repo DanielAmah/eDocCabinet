@@ -1,10 +1,10 @@
-import RoleHelper from '../helpers/RoleHelper';
+import roleHelper from '../helpers/roleHelper';
 import models from '../models/';
 
 const Users = models.Users;
 const Roles = models.Roles;
 
-const RoleController = {
+const roleController = {
   /**
    *  newRole: This allows admin to create a new role
    * @function newRole
@@ -14,13 +14,13 @@ const RoleController = {
    * @return {object} - returns response status and json data
    */
   newRole(request, response) {
-    RoleHelper.Validation(request);
+    roleHelper.validateTitle(request);
     const errors = request.validationErrors();
     if (errors) {
-      response.status(400).send(RoleHelper.ValidationErrorMessage(errors));
+      response.status(400).send(roleHelper.validateErrorMessage(errors));
     } else {
-      if (!RoleHelper.isAdmin(request)) {
-        return RoleHelper.AccessDenied(response);
+      if (!roleHelper.isAdmin(request)) {
+        return roleHelper.showAccessDeniedMessage(response);
       }
       return Roles.findOne({
         where: {
@@ -28,17 +28,18 @@ const RoleController = {
         }
       }).then((checkuser) => {
         if (checkuser) {
-          return RoleHelper.IfRoleExists(response);
+          return roleHelper.ifRoleExistsErrorMessage(response);
         }
         return Roles.create({
           title: request.body.title.toLowerCase()
         })
-          .then(() =>
+          .then(role =>
             response.status(201).send({
-              message: 'Roles created successfully'
+              message: 'Role created successfully',
+              title: role.title
             })
           )
-          .catch(error => RoleHelper.DatabaseError(response, error));
+          .catch(error => roleHelper.showDatabaseErrorMessage(response, error));
       });
     }
   },
@@ -53,14 +54,14 @@ const RoleController = {
    * @return {object} - returns response status and json data
    */
   listRoles(request, response) {
-    if (!RoleHelper.isAdmin(request)) {
-      return RoleHelper.AccessDenied(response);
+    if (!roleHelper.isAdmin(request)) {
+      return roleHelper.showAccessDeniedMessage(response);
     }
     return Roles.findAll({
       attributes: ['id', 'title', 'createdAt']
     })
       .then(roles => response.status(200).send(roles))
-      .catch(error => RoleHelper.ListDatabaseError(response, error));
+      .catch(error => roleHelper.showListDatabaseErrorMessage(response, error));
   },
 
   /**
@@ -74,8 +75,8 @@ const RoleController = {
    */
 
   listRolesAndUsers(request, response) {
-    if (!RoleHelper.isAdmin(request)) {
-      return RoleHelper.AccessDenied(response);
+    if (!roleHelper.isAdmin(request)) {
+      return roleHelper.showAccessDeniedMessage(response);
     }
     return Roles.findAll({
       include: [
@@ -88,8 +89,8 @@ const RoleController = {
     })
       .then(roles => response.status(200).send(roles))
       .catch(error =>
-        RoleHelper.ListRolesAndUsersDatabaseError(response, error)
+        roleHelper.ListRolesAndUsersDatabaseError(response, error)
       );
   }
 };
-export default RoleController;
+export default roleController;

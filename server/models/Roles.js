@@ -1,8 +1,10 @@
 /**
    * Defines user model
-   * @param {object} sequelize
-   * @param {object} DataTypes
-   * @return {object} - returns instance of the model
+   * @param {object} sequelize - use sequelize.define to
+   * define the Roles schema
+   * @param {object} DataTypes - shows the type of data
+   * for each field.
+   * @return {object} - returns instance of the Roles model
    */
 export default (sequelize, DataTypes) => {
   const Roles = sequelize.define('Roles', {

@@ -1,12 +1,12 @@
-import RoleHelper from '../helpers/RoleHelper';
-import UserHelper from '../helpers/UserHelper';
-import DocumentHelper from '../helpers/DocumentHelper';
+import roleHelper from '../helpers/roleHelper';
+import userHelper from '../helpers/userHelper';
+import documentHelper from '../helpers/documentHelper';
 import models from '../models/';
 
 const Users = models.Users;
 const Documents = models.Documents;
 
-const SearchController = {
+const searchController = {
   /**
    * searchUsers: Enables users to search for other registered users
    * @function searchUser
@@ -20,15 +20,17 @@ const SearchController = {
         message: 'No key word supplied'
       });
     }
-    if (!RoleHelper.isAdmin(request)) {
-      return UserHelper.AccessDenied(response);
+    if (!roleHelper.isAdmin(request)) {
+      return userHelper.accessDeniedMessage(response);
     }
-    return Users.findAll(UserHelper.SearchQueryDatabase(request))
+    return Users.findAll(userHelper.searchQueryDatabase(request))
       .then((user) => {
-        UserHelper.UserNotFound(response, user);
+        if (!user) {
+          userHelper.showUserNotFoundMessage(response);
+        }
         return response.status(200).send(user);
       })
-      .catch(error => UserHelper.SearchDatabaseError(response, error));
+      .catch(error => userHelper.searchDatabaseErrorMessage(response, error));
   },
   /**
    * searchDocument: This allows registered users get documents by search key
@@ -44,25 +46,31 @@ const SearchController = {
    */
   searchDocument(request, response) {
     if (!request.query.q) {
-      return response.status(400).send({
-        message: 'No key word supplied'
-      });
+      documentHelper.checkQuery(response);
     }
-    if (RoleHelper.isAdmin(request) || RoleHelper.isEditor(request)) {
-      return Documents.findAll(DocumentHelper.SearchQueryDatabase(request))
+    if (roleHelper.isAdmin(request) || roleHelper.isEditor(request)) {
+      return Documents.findAll(documentHelper.searchQueryDatabase(request))
         .then((document) => {
-          DocumentHelper.DocumentNotFound(response, document);
+          if (document.length === 0) {
+            return response.status(404).send({
+              message: 'No document Found'
+            });
+          }
           return response.status(200).send(document);
         })
-        .catch(error => DocumentHelper.SearchDatabaseError(response, error));
+        .catch(error =>
+          documentHelper.searchDatabaseErrorMessage(response, error)
+        );
     }
-    return Documents.findAll(DocumentHelper.FindQueryDatabase(request))
+    return Documents.findAll(documentHelper.findQueryDatabase(request))
       .then((document) => {
-        DocumentHelper.DocumentNotFound(response, document);
+        documentHelper.checkDocumentNotFound(response, document);
         return response.status(200).send(document);
       })
-      .catch(error => DocumentHelper.SearchDatabaseError(response, error));
+      .catch(error =>
+        documentHelper.searchDatabaseErrorMessage(response, error)
+      );
   }
 };
 
-export default SearchController;
+export default searchController;

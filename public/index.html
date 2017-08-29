@@ -313,9 +313,15 @@
 <p>We have language bindings in JavaScript! You can view code examples in the dark area to the right.
 This example API documentation page was created with <a href="https://github.com/tripit/slate">Slate</a>. Feel free to edit it and use it as a base for your own API&#39;s documentation.</p>
 <h1 id='authentication'>Authentication</h1>
+<p>eDocCabinet uses (username and password) to login to allow access to the API protected routes. On registering or login, a token is generated.</p>
+
+<p>eDocCabinet expects for the token to be included in all API requests to the server in a header that looks like the following:</p>
+
+<p>x-access-token: <strong>token</strong></p>
+
 <blockquote>
 <p>To get access to the document, you have to be registered:
-Register and get a token to be insert in the header</p>
+Register and login to get a token to be inserted in the header</p>
 </blockquote>
 <h2 id='login'>Login</h2>
 <blockquote>
@@ -330,7 +336,7 @@ Register and get a token to be insert in the header</p>
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-    <span class="s2">"oldUser"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"user"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"success"</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
         <span class="s2">"userId"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"userEmail"</span><span class="p">:</span> <span class="s2">"blessing@blessing.com"</span>
@@ -356,7 +362,7 @@ You must set the token at the header after login to access protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-    <span class="s2">"userlist"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">"users"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
             <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"admin@admin.com"</span><span class="p">,</span>
@@ -393,7 +399,7 @@ You must set the token at the header after login to access protected routes
             <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:53:21.524Z"</span>
         <span class="p">}</span>
     <span class="p">],</span>
-    <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"pageMeta"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"page"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
@@ -415,7 +421,7 @@ You must set the token at the header after login to access protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-    <span class="s2">"userlist"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">"users"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="s2">"id"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
             <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"peter@peter.com"</span><span class="p">,</span>
@@ -445,7 +451,7 @@ You must set the token at the header after login to access protected routes
             <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-14T18:17:50.155Z"</span>
         <span class="p">}</span>
     <span class="p">],</span>
-    <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"pageMeta"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"page"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
         <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
         <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
@@ -495,7 +501,7 @@ You must set the token at the header after login to access protected routes
 <p>Response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-    <span class="s2">"newUser"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"user"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"success"</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
         <span class="s2">"userId"</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
         <span class="s2">"userEmail"</span><span class="p">:</span> <span class="s2">"jamila@jamila.com"</span><span class="p">,</span>
@@ -643,7 +649,7 @@ You must set the token at the header after login to access protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-    <span class="s2">"listDocuments"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">"documents"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="s2">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
             <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"let be epic!!!"</span><span class="p">,</span>
@@ -685,7 +691,7 @@ You must set the token at the header after login to access protected routes
             <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:56:50.804Z"</span>
         <span class="p">}</span>
     <span class="p">],</span>
-    <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"PageMeta"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"page"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
         <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
@@ -707,7 +713,7 @@ You must set the token at the header after login to access protected routes
 <p>Sample JSON structured response:</p>
 </blockquote>
 <pre class="highlight javascript tab-javascript"><code><span class="p">{</span>
-    <span class="s2">"listDocuments"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">"documents"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="s2">"id"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
             <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"jundoe@email.com"</span><span class="p">,</span>
@@ -733,7 +739,7 @@ You must set the token at the header after login to access protected routes
             <span class="s2">"createdAt"</span><span class="p">:</span> <span class="s2">"2017-08-10T16:56:50.804Z"</span>
         <span class="p">}</span>
     <span class="p">],</span>
-    <span class="s2">"meta"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"pageMeta"</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">"page"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
         <span class="s2">"pageCount"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
         <span class="s2">"pageSize"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
