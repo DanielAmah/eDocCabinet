@@ -11,6 +11,7 @@ const request = supertest.agent(app);
 const adminUser = testHelper.specUser1;
 const subscriberUser = testHelper.specUser3;
 const document1 = testHelper.specDocument1;
+const document2 = testHelper.specDocument2;
 
 const adminToken = jsonWebTokenHelper(adminUser);
 const subscriberToken = jsonWebTokenHelper(subscriberUser);
@@ -132,16 +133,15 @@ describe('Search Controller', () => {
       'should successfully return a document if a document exists' +
         'and it is accessed by an admin',
       (done) => {
-        models.Documents.create(document1).then(() => {});
+        models.Documents.create(document2).then(() => {});
         request
-          .get('/api/v1/search/documents/?q=My first document')
+          .get('/api/v1/search/documents/?q=Comp')
           .set('Authorization', `${adminToken}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .end((err, response) => {
             expect(response.status).to.equal(200);
-            expect(response.body[0].title).to.equal('My first document');
-            expect(response.body[0].content).to.equal('The best content');
+            expect(response.body[0].title).to.equal('Computer Science');
             expect(response.body[0].access).to.equal('public');
             done();
           });
