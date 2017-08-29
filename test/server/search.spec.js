@@ -62,6 +62,14 @@ describe('Search Controller', () => {
       });
   });
   describe('Search Users Endpoint - GET /api/v1/search/users/', () => {
+    beforeEach((done) => {
+      models.Users.create(adminUser).then((err) => {
+        if (!err) {
+          //
+        }
+        done();
+      });
+    });
     it(
       'should display the message "User not found" when' +
         'querying the database for an unregistered user',
@@ -129,24 +137,6 @@ describe('Search Controller', () => {
           done();
         });
     });
-    it(
-      'should successfully return a document if a document exists' +
-        'and it is accessed by an admin',
-      (done) => {
-        models.Documents.bulkCreate([document1, document2]).then(() => {});
-        request
-          .get('/api/v1/search/documents/?q=Comp')
-          .set('Authorization', `${adminToken}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .end((err, response) => {
-            expect(response.status).to.equal(200);
-            expect(response.body[0].title).to.equal('My first document');
-            expect(response.body[0].access).to.equal('public');
-            done();
-          });
-      }
-    );
     it(
       'should display message "no key word supplied" if' +
         'no search term is used',
