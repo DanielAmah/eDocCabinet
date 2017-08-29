@@ -1,0 +1,18 @@
+{
+  "development": {
+    "username": "",
+    "password": null,
+    "database": "devdoc",
+    "host": "127.0.0.1",
+    "dialect": "postgres",
+    "port": 5432
+  },
+  "test": {
+ "use_env_variable": "DEV_URL",
+    "dialect": "postgres"
+  },
+  "production": {
+    "use_env_variable": "DATABASE_URL",
+    "dialect": "postgres"
+  }
+}

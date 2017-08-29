@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+  - "7"
+cache:
+  directories:
+    - node_modules
+install: [ "npm install"]
+addons:
+  coveralls:
+    coveralls: TLxQZuWi6nKCVHG1zBqpVk5ktDVa7NJHc
+after_script:
+  - ./node_modules/.bin/gulp coveralls
+after_success:
+  - npm install -g codeclimate-test-reporter
+  - codeclimate-test-reporter < lcov.info
