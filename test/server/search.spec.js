@@ -133,7 +133,7 @@ describe('Search Controller', () => {
       'should successfully return a document if a document exists' +
         'and it is accessed by an admin',
       (done) => {
-        models.Documents.BulkCreate([document1, document2]).then(() => {});
+        models.Documents.bulkCreate([document1, document2]).then(() => {});
         request
           .get('/api/v1/search/documents/?q=Comp')
           .set('Authorization', `${adminToken}`)
